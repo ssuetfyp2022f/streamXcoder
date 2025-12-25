@@ -11,9 +11,7 @@ import {
   Zap,
   Video,
   FileCode,
-  Youtube,
-  Instagram,
-  Facebook
+  Youtube
 } from 'lucide-react';
 
 const Footer = () => {
@@ -21,15 +19,15 @@ const Footer = () => {
 
   return (
     <footer className="mt-auto">
-      {/* Main Footer Section */}
-      <div style={{ backgroundColor: '#213555', color: '#FFFFFF' }}>
+      {/* Main Footer Section - #393E46 */}
+      <div style={{ backgroundColor: '#393E46', color: '#FFFFFF' }}>
         <div className="container mx-auto px-4 py-12">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             
             {/* Brand/Logo Column */}
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#3E5879' }}>
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#00ADB5' }}>
                   <Code size={24} />
                 </div>
                 <span className="text-xl font-bold">StreamXCoder</span>
@@ -38,56 +36,19 @@ const Footer = () => {
                 Learn to code by watching videos and practicing in real-time.
               </p>
               <div className="flex gap-3 pt-2">
-                {/* GitHub - Example Link */}
-                <a 
-                  href="https://github.com/example" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="hover:opacity-80 transition hover:scale-110"
-                  title="GitHub Example"
-                >
+                <a href="https://github.com/example" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition hover:scale-110">
                   <Github size={20} />
                 </a>
-                
-                {/* Twitter - Example Link */}
-                <a 
-                  href="https://twitter.com/example" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="hover:opacity-80 transition hover:scale-110"
-                  title="Twitter Example"
-                >
+                <a href="https://twitter.com/example" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition hover:scale-110">
                   <Twitter size={20} />
                 </a>
-                
-                {/* LinkedIn - Example Link */}
-                <a 
-                  href="https://linkedin.com/in/example" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="hover:opacity-80 transition hover:scale-110"
-                  title="LinkedIn Example"
-                >
+                <a href="https://linkedin.com/in/example" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition hover:scale-110">
                   <Linkedin size={20} />
                 </a>
-                
-                {/* YouTube - Example Link */}
-                <a 
-                  href="https://youtube.com/example" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="hover:opacity-80 transition hover:scale-110"
-                  title="YouTube Example"
-                >
+                <a href="https://youtube.com/example" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition hover:scale-110">
                   <Youtube size={20} />
                 </a>
-                
-                {/* Email - Example Link */}
-                <a 
-                  href="mailto:example@example.com"
-                  className="hover:opacity-80 transition hover:scale-110"
-                  title="Email Example"
-                >
+                <a href="mailto:example@example.com" className="hover:opacity-80 transition hover:scale-110">
                   <Mail size={20} />
                 </a>
               </div>
@@ -135,19 +96,19 @@ const Footer = () => {
               </h3>
               <ul className="space-y-2">
                 <li className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#D8C4B6' }}></div>
+                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#00ADB5' }}></div>
                   <span>Video Tutorials</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#D8C4B6' }}></div>
+                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#00ADB5' }}></div>
                   <span>Real-time Code Editor</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#D8C4B6' }}></div>
+                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#00ADB5' }}></div>
                   <span>Practice Exercises</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#D8C4B6' }}></div>
+                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#00ADB5' }}></div>
                   <span>Community Support</span>
                 </li>
               </ul>
@@ -160,19 +121,19 @@ const Footer = () => {
                 Built With
               </h3>
               <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 text-xs rounded-full" style={{ backgroundColor: '#3E5879' }}>
+                <span className="px-3 py-1 text-xs rounded-full" style={{ backgroundColor: '#00ADB5' }}>
                   React
                 </span>
-                <span className="px-3 py-1 text-xs rounded-full" style={{ backgroundColor: '#3E5879' }}>
+                <span className="px-3 py-1 text-xs rounded-full" style={{ backgroundColor: '#00ADB5' }}>
                   Tailwind CSS
                 </span>
-                <span className="px-3 py-1 text-xs rounded-full" style={{ backgroundColor: '#3E5879' }}>
+                <span className="px-3 py-1 text-xs rounded-full" style={{ backgroundColor: '#00ADB5' }}>
                   Firebase
                 </span>
-                <span className="px-3 py-1 text-xs rounded-full" style={{ backgroundColor: '#3E5879' }}>
+                <span className="px-3 py-1 text-xs rounded-full" style={{ backgroundColor: '#00ADB5' }}>
                   Node.js
                 </span>
-                <span className="px-3 py-1 text-xs rounded-full" style={{ backgroundColor: '#3E5879' }}>
+                <span className="px-3 py-1 text-xs rounded-full" style={{ backgroundColor: '#00ADB5' }}>
                   MongoDB
                 </span>
               </div>
@@ -182,12 +143,12 @@ const Footer = () => {
                   <input 
                     type="email" 
                     placeholder="Your email"
-                    className="flex-1 px-3 py-2 text-sm rounded-l-lg outline-none placeholder-gray-300"
-                    style={{ backgroundColor: '#3E5879', color: '#FFFFFF' }}
+                    className="flex-1 px-3 py-2 text-sm rounded-l-lg outline-none placeholder-gray-400"
+                    style={{ backgroundColor: '#222831', color: '#FFFFFF' }}
                   />
                   <button 
                     className="px-4 py-2 text-sm rounded-r-lg font-medium hover:opacity-90 transition"
-                    style={{ backgroundColor: '#D8C4B6', color: '#000000' }}
+                    style={{ backgroundColor: '#00ADB5', color: '#FFFFFF' }}
                   >
                     Subscribe
                   </button>
@@ -198,12 +159,12 @@ const Footer = () => {
         </div>
       </div>
 
-      {/* Bottom Bar */}
-      <div style={{ backgroundColor: '#3E5879', color: '#FFFFFF' }}>
+      {/* Bottom Bar - #00ADB5 */}
+      <div style={{ backgroundColor: '#00ADB5', color: '#FFFFFF' }}>
         <div className="container mx-auto px-4 py-4">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center gap-2 mb-4 md:mb-0">
-              <Heart size={16} fill="#F5EFE7" />
+              <Heart size={16} fill="#FFFFFF" />
               <span className="text-sm">
                 Made with passion for the developer community
               </span>
@@ -212,45 +173,16 @@ const Footer = () => {
             <div className="text-sm text-center md:text-right">
               <p>© {currentYear} StreamXCoder. All rights reserved.</p>
               <p className="mt-1 opacity-90">
-                {/* Privacy Policy - Example Link */}
-                <a 
-                  href="https://example.com/privacy" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="hover:underline mx-2"
-                >
+                <a href="https://example.com/privacy" target="_blank" rel="noopener noreferrer" className="hover:underline mx-2">
                   Privacy Policy
                 </a>
                 <span>•</span>
-                
-                {/* Terms of Service - Example Link */}
-                <a 
-                  href="https://example.com/terms" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="hover:underline mx-2"
-                >
+                <a href="https://example.com/terms" target="_blank" rel="noopener noreferrer" className="hover:underline mx-2">
                   Terms of Service
                 </a>
                 <span>•</span>
-                
-                {/* Contact Us - Example Email Link */}
-                <a 
-                  href="mailto:contact@example.com"
-                  className="hover:underline mx-2"
-                >
+                <a href="mailto:contact@example.com" className="hover:underline mx-2">
                   Contact Us
-                </a>
-                <span>•</span>
-                
-                {/* Documentation - Example Link */}
-                <a 
-                  href="https://docs.example.com" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="hover:underline mx-2"
-                >
-                  Documentation
                 </a>
               </p>
             </div>

@@ -1,4 +1,3 @@
-// src/pages/Login.jsx
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -39,27 +38,14 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     
-    // TODO: Firebase authentication
     setTimeout(() => {
       setLoading(false);
       navigate('/dashboard');
     }, 1500);
   };
 
-  // Floating animation variants
-  const floatingAnimation = {
-    animate: {
-      y: [0, -10, 0],
-      transition: {
-        duration: 3,
-        repeat: Infinity,
-        ease: "easeInOut"
-      }
-    }
-  };
-
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden" style={{ backgroundColor: '#F5EFE7' }}>
+    <div className="min-h-screen px-4 pt-10 pb-20 relative overflow-hidden" style={{ backgroundColor: '#EEEEEE' }}>
       
       {/* Background Animated Elements */}
       <motion.div 
@@ -67,7 +53,7 @@ const Login = () => {
         animate={{ rotate: 360 }}
         transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
       >
-        <Code size={80} color="#213555" />
+        <Code size={80} color="#393E46" />
       </motion.div>
 
       <motion.div 
@@ -75,7 +61,7 @@ const Login = () => {
         animate={{ rotate: -360 }}
         transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
       >
-        <Video size={64} color="#213555" />
+        <Video size={64} color="#393E46" />
       </motion.div>
 
       <motion.div 
@@ -83,43 +69,12 @@ const Login = () => {
         animate={{ scale: [1, 1.2, 1] }}
         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
       >
-        <Palette size={48} color="#3E5879" />
+        <Palette size={48} color="#00ADB5" />
       </motion.div>
 
-      {/* Floating Bubbles */}
-      {[...Array(5)].map((_, i) => (
-        <motion.div
-          key={i}
-          className="absolute rounded-full"
-          style={{
-            width: Math.random() * 60 + 20,
-            height: Math.random() * 60 + 20,
-            backgroundColor: i % 2 === 0 ? '#D8C4B6' : '#3E5879',
-            opacity: 0.1,
-            top: `${Math.random() * 100}%`,
-            left: `${Math.random() * 100}%`,
-          }}
-          animate={{
-            y: [0, -30, 0],
-            x: [0, Math.random() * 20 - 10, 0],
-          }}
-          transition={{
-            duration: 3 + Math.random() * 2,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: i * 0.5,
-          }}
-        />
-      ))}
-
-      {/* Main Content */}
-      <motion.div 
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        className="relative z-10 max-w-md w-full"
-      >
-        <div className="text-center mb-8">
+      {/* Main Content - Always from top */}
+      <div className="relative z-10 max-w-md w-full mx-auto pt-12">
+        <div className="text-center mb-10">
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
@@ -129,11 +84,11 @@ const Login = () => {
               damping: 10,
               delay: 0.2 
             }}
-            className="flex justify-center mb-4"
+            className="flex justify-center mb-6"
           >
             <div 
-              className="relative w-20 h-20 rounded-2xl flex items-center justify-center shadow-2xl"
-              style={{ backgroundColor: '#213555' }}
+              className="w-20 h-20 rounded-2xl flex items-center justify-center shadow-2xl"
+              style={{ backgroundColor: '#00ADB5' }}
             >
               <Code className="text-white" size={36} />
               <motion.div
@@ -141,7 +96,7 @@ const Login = () => {
                 animate={{ rotate: 360 }}
                 transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
               >
-                <Sparkles className="text-yellow-400" size={20} />
+                <Sparkles className="text-white" size={20} />
               </motion.div>
             </div>
           </motion.div>
@@ -151,7 +106,7 @@ const Login = () => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
             className="text-3xl font-bold mb-2"
-            style={{ color: '#213555' }}
+            style={{ color: '#393E46' }}
           >
             Welcome Back!
           </motion.h1>
@@ -159,7 +114,8 @@ const Login = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
-            className="text-gray-600"
+            style={{ color: '#222831' }}
+            className="opacity-80"
           >
             Sign in to continue coding with videos
           </motion.p>
@@ -179,7 +135,7 @@ const Login = () => {
               animate={{ x: 0, opacity: 1 }}
               transition={{ delay: 0.6 }}
             >
-              <label className="block text-sm font-medium mb-2" style={{ color: '#213555' }}>
+              <label className="block text-sm font-medium mb-2" style={{ color: '#393E46' }}>
                 <div className="flex items-center gap-2">
                   <Mail size={16} />
                   <span>Email Address</span>
@@ -194,13 +150,13 @@ const Login = () => {
                   required
                   className="w-full px-4 py-3 pl-10 rounded-lg border focus:outline-none focus:ring-2 transition-all duration-300"
                   style={{ 
-                    backgroundColor: '#F5EFE7',
-                    borderColor: '#D8C4B6',
-                    color: '#000000'
+                    backgroundColor: '#EEEEEE',
+                    borderColor: '#00ADB5',
+                    color: '#222831'
                   }}
                   placeholder="you@example.com"
                 />
-                <Mail className="absolute left-3 top-3.5 text-gray-400" size={18} />
+                <Mail className="absolute left-3 top-3.5" size={18} style={{ color: '#00ADB5' }} />
               </div>
             </motion.div>
 
@@ -210,7 +166,7 @@ const Login = () => {
               animate={{ x: 0, opacity: 1 }}
               transition={{ delay: 0.7 }}
             >
-              <label className="block text-sm font-medium mb-2" style={{ color: '#213555' }}>
+              <label className="block text-sm font-medium mb-2" style={{ color: '#393E46' }}>
                 <div className="flex items-center gap-2">
                   <Lock size={16} />
                   <span>Password</span>
@@ -225,23 +181,24 @@ const Login = () => {
                   required
                   className="w-full px-4 py-3 pl-10 pr-10 rounded-lg border focus:outline-none focus:ring-2 transition-all duration-300"
                   style={{ 
-                    backgroundColor: '#F5EFE7',
-                    borderColor: '#D8C4B6',
-                    color: '#000000'
+                    backgroundColor: '#EEEEEE',
+                    borderColor: '#00ADB5',
+                    color: '#222831'
                   }}
                   placeholder="••••••••"
                 />
-                <Lock className="absolute left-3 top-3.5 text-gray-400" size={18} />
+                <Lock className="absolute left-3 top-3.5" size={18} style={{ color: '#00ADB5' }} />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-3.5"
+                  style={{ color: '#00ADB5' }}
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
               <div className="flex justify-end mt-2">
-                <a href="#" className="text-sm hover:underline" style={{ color: '#3E5879' }}>
+                <a href="#" className="text-sm hover:underline" style={{ color: '#00ADB5' }}>
                   Forgot password?
                 </a>
               </div>
@@ -262,7 +219,7 @@ const Login = () => {
                 onMouseLeave={() => setIsHovered(false)}
                 className="w-full py-3 px-6 rounded-lg font-medium flex items-center justify-center gap-2 relative overflow-hidden transition-all duration-300"
                 style={{ 
-                  backgroundColor: '#213555',
+                  backgroundColor: '#00ADB5',
                   color: '#FFFFFF'
                 }}
               >
@@ -297,10 +254,10 @@ const Login = () => {
             className="relative my-6"
           >
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t" style={{ borderColor: '#D8C4B6' }}></div>
+              <div className="w-full border-t" style={{ borderColor: '#00ADB5' }}></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2" style={{ backgroundColor: '#FFFFFF', color: '#3E5879' }}>
+              <span className="px-2" style={{ backgroundColor: '#FFFFFF', color: '#393E46' }}>
                 Or continue with
               </span>
             </div>
@@ -321,11 +278,11 @@ const Login = () => {
               className="flex items-center justify-center gap-2 py-3 px-4 rounded-lg border hover:shadow-md transition-all duration-300"
               style={{ 
                 backgroundColor: '#FFFFFF',
-                borderColor: '#D8C4B6',
-                color: '#000000'
+                borderColor: '#00ADB5',
+                color: '#222831'
               }}
             >
-              <Chrome size={20} />
+              <Chrome size={20} style={{ color: '#00ADB5' }} />
               <span>Google</span>
             </motion.button>
 
@@ -336,8 +293,8 @@ const Login = () => {
               onClick={() => console.log('GitHub login')}
               className="flex items-center justify-center gap-2 py-3 px-4 rounded-lg border hover:shadow-md transition-all duration-300"
               style={{ 
-                backgroundColor: '#000000',
-                borderColor: '#000000',
+                backgroundColor: '#222831',
+                borderColor: '#222831',
                 color: '#FFFFFF'
               }}
             >
@@ -352,14 +309,14 @@ const Login = () => {
             animate={{ opacity: 1 }}
             transition={{ delay: 1.1 }}
             className="text-center mt-6 pt-6 border-t"
-            style={{ borderColor: '#D8C4B6' }}
+            style={{ borderColor: '#00ADB5' }}
           >
-            <p className="text-gray-600">
+            <p style={{ color: '#393E46' }}>
               Don't have an account?{' '}
               <Link 
                 to="/signup" 
                 className="font-medium hover:underline transition-all"
-                style={{ color: '#213555' }}
+                style={{ color: '#00ADB5' }}
               >
                 <motion.span
                   whileHover={{ x: 5 }}
@@ -381,9 +338,9 @@ const Login = () => {
           className="mt-8 grid grid-cols-3 gap-4 text-center"
         >
           {[
-            { icon: Video, text: 'Video Tutorials', color: '#213555' },
-            { icon: Code, text: 'Live Coding', color: '#3E5879' },
-            { icon: Zap, text: 'Real-time Practice', color: '#D8C4B6' }
+            { icon: Video, text: 'Video Tutorials', color: '#00ADB5' },
+            { icon: Code, text: 'Live Coding', color: '#393E46' },
+            { icon: Zap, text: 'Real-time Practice', color: '#222831' }
           ].map((feature, index) => (
             <motion.div
               key={index}
@@ -398,7 +355,7 @@ const Login = () => {
             </motion.div>
           ))}
         </motion.div>
-      </motion.div>
+      </div>
     </div>
   );
 };

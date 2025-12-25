@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import "./App.css"
 import Home from "./pages/Home";
 import Login from "./pages/Login";
@@ -7,8 +7,26 @@ import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
-import Loader from "./components/Loader"; // Import Loader
-import MainLayout from "./layouts/MainLayout";
+import Loader from "./components/Loader";
+
+const Layout = ({ children }) => {
+  const location = useLocation();
+  const hideNavbarFooter = ['/login', '/signup'].includes(location.pathname);
+  
+  if (hideNavbarFooter) {
+    return children;
+  }
+  
+  return (
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#EEEEEE' }}>
+      <Navbar />
+      <main className="flex-grow">
+        {children}
+      </main>
+      <Footer />
+    </div>
+  );
+};
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -23,22 +41,28 @@ function App() {
 
   return (
     <>
-      {/* Use Loader Component */}
+      {/* Show Loader */}
       {loading && <Loader duration={3000} message="Code Along With Videos" />}
 
-      {/* Main Content */}
-      <div className="min-h-screen w-full flex flex-col" style={{ backgroundColor: '#F5EFE7' }}>
-         {loading && <Loader />}
-
- <Router>
-    <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route path="/signup" element={<Signup />} />
-      <Route path="/" element={<MainLayout><Home /></MainLayout>} />
-      <Route path="/dashboard" element={<MainLayout><Dashboard /></MainLayout>} />
-    </Routes>
- </Router>
-      </div>
+      {/* Main App Content */}
+      <Router>
+        <Routes>
+          <Route path="/" element={
+            <Layout>
+              <Home />
+            </Layout>
+          } />
+          
+          <Route path="/dashboard" element={
+            <Layout>
+              <Dashboard />
+            </Layout>
+          } />
+          
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+        </Routes>
+      </Router>
     </>
   );
 }

@@ -1,10 +1,8 @@
-// src/components/VideoCard.jsx
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Play, Clock, User, Eye, Code } from 'lucide-react';
 
 const VideoCard = ({ video }) => {
-  // Default values if video data is not provided
   const {
     id = 1,
     title = "Video Title",
@@ -31,7 +29,7 @@ const VideoCard = ({ video }) => {
           {/* Play Button Overlay */}
           <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-300 flex items-center justify-center">
             <div className="opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-4 group-hover:translate-y-0">
-              <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: '#213555' }}>
+              <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: '#00ADB5' }}>
                 <Play className="text-white" size={24} />
               </div>
             </div>
@@ -45,9 +43,9 @@ const VideoCard = ({ video }) => {
           
           {/* Level Badge */}
           <div className="absolute top-3 left-3 text-xs font-medium px-2 py-1 rounded" style={{ 
-            backgroundColor: level === 'Beginner' ? '#D8C4B6' : 
-                           level === 'Intermediate' ? '#3E5879' : '#213555',
-            color: level === 'Beginner' ? '#000000' : '#FFFFFF'
+            backgroundColor: level === 'Beginner' ? '#00ADB5' : 
+                           level === 'Intermediate' ? '#393E46' : '#222831',
+            color: '#FFFFFF'
           }}>
             {level}
           </div>
@@ -57,26 +55,24 @@ const VideoCard = ({ video }) => {
         <div className="p-4">
           {/* Category */}
           <div className="flex items-center gap-1 mb-2">
-            <Code size={14} style={{ color: '#213555' }} />
-            <span className="text-xs font-medium" style={{ color: '#213555' }}>
+            <Code size={14} style={{ color: '#00ADB5' }} />
+            <span className="text-xs font-medium" style={{ color: '#00ADB5' }}>
               {category}
             </span>
           </div>
           
           {/* Title */}
-          <h3 className="font-bold text-lg mb-2 group-hover:text-blue-600 transition-colors line-clamp-1" style={{ color: '#000000' }}>
+          <h3 className="font-bold text-lg mb-2 group-hover:text-blue-600 transition-colors line-clamp-1" style={{ color: '#393E46' }}>
             {title}
           </h3>
           
           {/* Description */}
           <p className="text-gray-600 text-sm mb-3 line-clamp-2">
             {description}
-            </p>
-
-          </div>
+          </p>
           
           {/* Meta Information */}
-          <div className="flex items-center justify-between text-gray-500 text-sm pt-3 border-t" style={{ borderColor: '#D8C4B6' }}>
+          <div className="flex items-center justify-between text-gray-500 text-sm pt-3 border-t" style={{ borderColor: '#EEEEEE' }}>
             <div className="flex items-center gap-1">
               <User size={14} />
               <span>{author}</span>
@@ -87,12 +83,11 @@ const VideoCard = ({ video }) => {
             </div>
           </div>
         </div>
-      
+      </div>
     </Link>
   );
 };
 
-// Optional: Default Props
 VideoCard.defaultProps = {
   video: {
     id: 1,
