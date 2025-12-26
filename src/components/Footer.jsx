@@ -1,5 +1,203 @@
-import React from 'react';
+// import React from 'react';
+// import { Link } from 'react-router-dom';
+// import { 
+//   Code, 
+//   Github, 
+//   Twitter, 
+//   Linkedin, 
+//   Mail, 
+//   ExternalLink,
+//   Heart,
+//   Zap,
+//   Video,
+//   FileCode,
+//   Youtube
+// } from 'lucide-react';
+
+// const Footer = () => {
+//   const currentYear = new Date().getFullYear();
+
+//   return (
+//     <footer className="mt-auto">
+//       {/* Main Footer Section - #393E46 */}
+//       <div style={{ backgroundColor: '#393E46', color: '#FFFFFF' }}>
+//         <div className="container mx-auto px-4 py-12">
+//           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            
+//             {/* Brand/Logo Column */}
+//             <div className="space-y-4">
+//               <div className="flex items-center gap-2">
+//                 <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#00ADB5' }}>
+//                   <Code size={24} />
+//                 </div>
+//                 <span className="text-xl font-bold">StreamXCoder</span>
+//               </div>
+//               <p className="text-sm opacity-90">
+//                 Learn to code by watching videos and practicing in real-time.
+//               </p>
+//               <div className="flex gap-3 pt-2">
+//                 <a href="https://github.com/example" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition hover:scale-110">
+//                   <Github size={20} />
+//                 </a>
+//                 <a href="https://twitter.com/example" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition hover:scale-110">
+//                   <Twitter size={20} />
+//                 </a>
+//                 <a href="https://linkedin.com/in/example" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition hover:scale-110">
+//                   <Linkedin size={20} />
+//                 </a>
+//                 <a href="https://youtube.com/example" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition hover:scale-110">
+//                   <Youtube size={20} />
+//                 </a>
+//                 <a href="mailto:example@example.com" className="hover:opacity-80 transition hover:scale-110">
+//                   <Mail size={20} />
+//                 </a>
+//               </div>
+//             </div>
+
+//             {/* Quick Links */}
+//             <div>
+//               <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+//                 <Zap size={18} />
+//                 Quick Links
+//               </h3>
+//               <ul className="space-y-2">
+//                 <li>
+//                   <Link to="/" className="hover:underline hover:opacity-90 transition flex items-center gap-1">
+//                     <ExternalLink size={14} />
+//                     Home
+//                   </Link>
+//                 </li>
+//                 <li>
+//                   <Link to="/videos" className="hover:underline hover:opacity-90 transition flex items-center gap-1">
+//                     <ExternalLink size={14} />
+//                     Browse Videos
+//                   </Link>
+//                 </li>
+//                 <li>
+//                   <Link to="/explore" className="hover:underline hover:opacity-90 transition flex items-center gap-1">
+//                     <ExternalLink size={14} />
+//                     Code Editor
+//                   </Link>
+//                 </li>
+//                 <li>
+//                   <Link to="/upload" className="hover:underline hover:opacity-90 transition flex items-center gap-1">
+//                     <ExternalLink size={14} />
+//                     Upload Video
+//                   </Link>
+//                 </li>
+//               </ul>
+//             </div>
+
+//             {/* Features */}
+//             <div>
+//               <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+//                 <Video size={18} />
+//                 Features
+//               </h3>
+//               <ul className="space-y-2">
+//                 <li className="flex items-center gap-2">
+//                   <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#00ADB5' }}></div>
+//                   <span>Video Tutorials</span>
+//                 </li>
+//                 <li className="flex items-center gap-2">
+//                   <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#00ADB5' }}></div>
+//                   <span>Real-time Code Editor</span>
+//                 </li>
+//                 <li className="flex items-center gap-2">
+//                   <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#00ADB5' }}></div>
+//                   <span>Practice Exercises</span>
+//                 </li>
+//                 <li className="flex items-center gap-2">
+//                   <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#00ADB5' }}></div>
+//                   <span>Community Support</span>
+//                 </li>
+//               </ul>
+//             </div>
+
+//             {/* Tech Stack */}
+//             <div>
+//               <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+//                 <FileCode size={18} />
+//                 Built With
+//               </h3>
+//               <div className="flex flex-wrap gap-2">
+//                 <span className="px-3 py-1 text-xs rounded-full" style={{ backgroundColor: '#00ADB5' }}>
+//                   React
+//                 </span>
+//                 <span className="px-3 py-1 text-xs rounded-full" style={{ backgroundColor: '#00ADB5' }}>
+//                   Tailwind CSS
+//                 </span>
+//                 <span className="px-3 py-1 text-xs rounded-full" style={{ backgroundColor: '#00ADB5' }}>
+//                   Firebase
+//                 </span>
+//                 <span className="px-3 py-1 text-xs rounded-full" style={{ backgroundColor: '#00ADB5' }}>
+//                   Node.js
+//                 </span>
+//                 <span className="px-3 py-1 text-xs rounded-full" style={{ backgroundColor: '#00ADB5' }}>
+//                   MongoDB
+//                 </span>
+//               </div>
+//               <div className="mt-6">
+//                 <h4 className="font-bold mb-2">Newsletter</h4>
+//                 <div className="flex">
+//                   <input 
+//                     type="email" 
+//                     placeholder="Your email"
+//                     className="flex-1 px-3 py-2 text-sm rounded-l-lg outline-none placeholder-gray-400"
+//                     style={{ backgroundColor: '#222831', color: '#FFFFFF' }}
+//                   />
+//                   <button 
+//                     className="px-4 py-2 text-sm rounded-r-lg font-medium hover:opacity-90 transition"
+//                     style={{ backgroundColor: '#00ADB5', color: '#FFFFFF' }}
+//                   >
+//                     Subscribe
+//                   </button>
+//                 </div>
+//               </div>
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* Bottom Bar - #00ADB5 */}
+//       <div style={{ backgroundColor: '#00ADB5', color: '#FFFFFF' }}>
+//         <div className="container mx-auto px-4 py-4">
+//           <div className="flex flex-col md:flex-row justify-between items-center">
+//             <div className="flex items-center gap-2 mb-4 md:mb-0">
+//               <Heart size={16} fill="#FFFFFF" />
+//               <span className="text-sm">
+//                 Made with passion for the developer community
+//               </span>
+//             </div>
+            
+//             <div className="text-sm text-center md:text-right">
+//               <p>© {currentYear} StreamXCoder. All rights reserved.</p>
+//               <p className="mt-1 opacity-90">
+//                 <a href="https://example.com/privacy" target="_blank" rel="noopener noreferrer" className="hover:underline mx-2">
+//                   Privacy Policy
+//                 </a>
+//                 <span>•</span>
+//                 <a href="https://example.com/terms" target="_blank" rel="noopener noreferrer" className="hover:underline mx-2">
+//                   Terms of Service
+//                 </a>
+//                 <span>•</span>
+//                 <a href="mailto:contact@example.com" className="hover:underline mx-2">
+//                   Contact Us
+//                 </a>
+//               </p>
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+//     </footer>
+//   );
+// };
+
+// export default Footer;
+// src/components/Footer.jsx
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { 
   Code, 
   Github, 
@@ -11,184 +209,407 @@ import {
   Zap,
   Video,
   FileCode,
-  Youtube
+  Youtube,
+  MessageSquare,
+  Award,
+  Globe,
+  Rocket,
+  ArrowUp,
+  Users,
+  Star,
+  Shield,
+  Coffee,
+  Terminal
 } from 'lucide-react';
 
 const Footer = () => {
+  const [email, setEmail] = useState('');
   const currentYear = new Date().getFullYear();
 
+  const handleSubscribe = (e) => {
+    e.preventDefault();
+    if (email) {
+      alert(`Thank you for subscribing with ${email}!`);
+      setEmail('');
+    }
+  };
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const socialLinks = [
+    { icon: Github, label: 'GitHub', color: '#6e5494', url: 'https://github.com' },
+    { icon: Twitter, label: 'Twitter', color: '#1DA1F2', url: 'https://twitter.com' },
+    { icon: Linkedin, label: 'LinkedIn', color: '#0077B5', url: 'https://linkedin.com' },
+    { icon: Youtube, label: 'YouTube', color: '#FF0000', url: 'https://youtube.com' },
+    { icon: MessageSquare, label: 'Discord', color: '#7289DA', url: 'https://discord.com' },
+  ];
+
+  const quickLinks = [
+    { label: 'Home', path: '/' },
+    { label: 'Browse Videos', path: '/videos' },
+    { label: 'Code Editor', path: '/editor' },
+    { label: 'Upload Video', path: '/upload' },
+    { label: 'Courses', path: '/courses' },
+    { label: 'Community', path: '/community' },
+  ];
+
+  const features = [
+    { icon: Video, label: 'Interactive Videos', count: '500+' },
+    { icon: Terminal, label: 'Code Challenges', count: '100+' },
+    { icon: Users, label: 'Active Community', count: '50K+' },
+    { icon: Award, label: 'Certifications', count: '25+' },
+  ];
+
   return (
-    <footer className="mt-auto">
-      {/* Main Footer Section - #393E46 */}
-      <div style={{ backgroundColor: '#393E46', color: '#FFFFFF' }}>
-        <div className="container mx-auto px-4 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            
-            {/* Brand/Logo Column */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#00ADB5' }}>
-                  <Code size={24} />
-                </div>
-                <span className="text-xl font-bold">StreamXCoder</span>
-              </div>
-              <p className="text-sm opacity-90">
-                Learn to code by watching videos and practicing in real-time.
-              </p>
-              <div className="flex gap-3 pt-2">
-                <a href="https://github.com/example" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition hover:scale-110">
-                  <Github size={20} />
-                </a>
-                <a href="https://twitter.com/example" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition hover:scale-110">
-                  <Twitter size={20} />
-                </a>
-                <a href="https://linkedin.com/in/example" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition hover:scale-110">
-                  <Linkedin size={20} />
-                </a>
-                <a href="https://youtube.com/example" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition hover:scale-110">
-                  <Youtube size={20} />
-                </a>
-                <a href="mailto:example@example.com" className="hover:opacity-80 transition hover:scale-110">
-                  <Mail size={20} />
-                </a>
-              </div>
-            </div>
+    <footer className="relative mt-auto overflow-hidden">
+      {/* Animated Background */}
+      <div className="absolute inset-0">
+        <div className="absolute inset-0 opacity-5"
+          style={{
+            backgroundImage: `radial-gradient(circle at 20% 80%, #00ADB5 0%, transparent 50%),
+                             radial-gradient(circle at 80% 20%, #393E46 0%, transparent 50%)`
+          }}
+        />
+        
+        {/* Floating elements */}
+        {[...Array(5)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute rounded-full opacity-10"
+            style={{ 
+              backgroundColor: '#00ADB5',
+              width: 40 + i * 20,
+              height: 40 + i * 20,
+              top: `${10 + i * 15}%`,
+              left: `${i * 20}%`,
+            }}
+            animate={{
+              y: [0, -30, 0],
+              rotate: [0, 360],
+            }}
+            transition={{
+              duration: 15 + i * 5,
+              repeat: Infinity,
+              ease: "linear",
+            }}
+          />
+        ))}
+      </div>
 
-            {/* Quick Links */}
-            <div>
-              <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                <Zap size={18} />
-                Quick Links
-              </h3>
-              <ul className="space-y-2">
-                <li>
-                  <Link to="/" className="hover:underline hover:opacity-90 transition flex items-center gap-1">
-                    <ExternalLink size={14} />
-                    Home
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/videos" className="hover:underline hover:opacity-90 transition flex items-center gap-1">
-                    <ExternalLink size={14} />
-                    Browse Videos
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/explore" className="hover:underline hover:opacity-90 transition flex items-center gap-1">
-                    <ExternalLink size={14} />
-                    Code Editor
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/upload" className="hover:underline hover:opacity-90 transition flex items-center gap-1">
-                    <ExternalLink size={14} />
-                    Upload Video
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            {/* Features */}
-            <div>
-              <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                <Video size={18} />
-                Features
-              </h3>
-              <ul className="space-y-2">
-                <li className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#00ADB5' }}></div>
-                  <span>Video Tutorials</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#00ADB5' }}></div>
-                  <span>Real-time Code Editor</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#00ADB5' }}></div>
-                  <span>Practice Exercises</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#00ADB5' }}></div>
-                  <span>Community Support</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Tech Stack */}
-            <div>
-              <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                <FileCode size={18} />
-                Built With
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 text-xs rounded-full" style={{ backgroundColor: '#00ADB5' }}>
-                  React
-                </span>
-                <span className="px-3 py-1 text-xs rounded-full" style={{ backgroundColor: '#00ADB5' }}>
-                  Tailwind CSS
-                </span>
-                <span className="px-3 py-1 text-xs rounded-full" style={{ backgroundColor: '#00ADB5' }}>
-                  Firebase
-                </span>
-                <span className="px-3 py-1 text-xs rounded-full" style={{ backgroundColor: '#00ADB5' }}>
-                  Node.js
-                </span>
-                <span className="px-3 py-1 text-xs rounded-full" style={{ backgroundColor: '#00ADB5' }}>
-                  MongoDB
-                </span>
-              </div>
-              <div className="mt-6">
-                <h4 className="font-bold mb-2">Newsletter</h4>
-                <div className="flex">
-                  <input 
-                    type="email" 
-                    placeholder="Your email"
-                    className="flex-1 px-3 py-2 text-sm rounded-l-lg outline-none placeholder-gray-400"
-                    style={{ backgroundColor: '#222831', color: '#FFFFFF' }}
-                  />
-                  <button 
-                    className="px-4 py-2 text-sm rounded-r-lg font-medium hover:opacity-90 transition"
-                    style={{ backgroundColor: '#00ADB5', color: '#FFFFFF' }}
+      {/* Main Footer Content */}
+      <div className="relative z-10">
+        {/* Top Section */}
+        <div className="py-16" style={{ backgroundColor: '#393E46' }}>
+          <div className="container mx-auto px-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-12">
+              {/* Brand Section */}
+              <div className="space-y-6">
+                <div className="flex items-center gap-4">
+                  <motion.div
+                    whileHover={{ rotate: 360 }}
+                    transition={{ duration: 0.5 }}
+                    className="relative"
                   >
-                    Subscribe
-                  </button>
+                    <div className="w-16 h-16 rounded-xl flex items-center justify-center"
+                      style={{ 
+                        background: 'linear-gradient(135deg, #00ADB5 0%, #61DAFB 100%)',
+                      }}
+                    >
+                      <Code className="text-white" size={28} />
+                    </div>
+                    <motion.div
+                      className="absolute -top-2 -right-2"
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+                    >
+                      <Zap size={16} className="text-yellow-400" />
+                    </motion.div>
+                  </motion.div>
+                  
+                  <div>
+                    <h2 className="text-3xl font-bold bg-gradient-to-r from-[#00ADB5] via-[#61DAFB] to-[#00ADB5] bg-clip-text text-transparent">
+                      StreamXCoder
+                    </h2>
+                    <p className="text-gray-300 mt-1">Learn. Code. Build.</p>
+                  </div>
                 </div>
+
+                <p className="text-gray-300 leading-relaxed max-w-lg">
+                  The ultimate platform for interactive coding tutorials. Watch videos, 
+                  write code in real-time, and join a community of passionate developers 
+                  transforming their skills.
+                </p>
+
+                {/* Social Links */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                    <Globe size={18} />
+                    Connect With Us
+                  </h3>
+                  <div className="flex flex-wrap gap-3">
+                    {socialLinks.map((social, index) => (
+                      <motion.a
+                        key={social.label}
+                        href={social.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: index * 0.1 }}
+                        whileHover={{ 
+                          scale: 1.1, 
+                          y: -5,
+                          backgroundColor: social.color 
+                        }}
+                        className="w-12 h-12 rounded-xl flex items-center justify-center relative overflow-hidden group"
+                        style={{ 
+                          backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                          border: '1px solid rgba(255, 255, 255, 0.1)'
+                        }}
+                      >
+                        <social.icon size={20} className="text-white" />
+                        
+                        {/* Hover tooltip */}
+                        <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 px-2 py-1 rounded text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity"
+                          style={{ 
+                            backgroundColor: social.color,
+                            color: '#FFFFFF'
+                          }}
+                        >
+                          {social.label}
+                        </span>
+                      </motion.a>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Newsletter & Quick Links */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Quick Links */}
+                <div>
+                  <h3 className="text-xl font-bold mb-6 text-white flex items-center gap-2">
+                    <ExternalLink size={18} />
+                    Quick Links
+                  </h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    {quickLinks.map((link, index) => (
+                      <motion.div
+                        key={link.label}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                      >
+                        <Link
+                          to={link.path}
+                          className="flex items-center gap-2 py-2 text-gray-300 hover:text-white group transition-all"
+                        >
+                          <div className="w-1 h-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                            style={{ backgroundColor: '#00ADB5' }}
+                          />
+                          <span className="group-hover:translate-x-1 transition-transform">
+                            {link.label}
+                          </span>
+                        </Link>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Newsletter */}
+                <div>
+                  <h3 className="text-xl font-bold mb-6 text-white flex items-center gap-2">
+                    <Rocket size={18} />
+                    Stay Updated
+                  </h3>
+                  
+                  <form onSubmit={handleSubscribe} className="space-y-4">
+                    <p className="text-gray-300 text-sm">
+                      Get the latest tutorials, updates, and coding tips directly in your inbox.
+                    </p>
+                    
+                    <div className="relative">
+                      <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="Your email address"
+                        className="w-full pl-12 pr-4 py-3 rounded-xl bg-white/5 text-white placeholder-gray-400 outline-none border border-white/10 focus:border-[#00ADB5] transition-colors"
+                      />
+                    </div>
+                    
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      type="submit"
+                      className="w-full py-3.5 rounded-xl font-bold flex items-center justify-center gap-2"
+                      style={{ 
+                        background: 'linear-gradient(135deg, #00ADB5 0%, #393E46 100%)',
+                        color: '#FFFFFF'
+                      }}
+                    >
+                      <Zap size={18} />
+                      Subscribe Now
+                    </motion.button>
+                    
+                    <p className="text-xs text-gray-400 text-center">
+                      No spam. Unsubscribe anytime.
+                    </p>
+                  </form>
+                </div>
+              </div>
+            </div>
+
+            {/* Features Stats */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8"
+            >
+              {features.map((feature, index) => (
+                <motion.div
+                  key={feature.label}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1 }}
+                  whileHover={{ y: -5 }}
+                  className="p-4 rounded-xl text-center backdrop-blur-sm"
+                  style={{ 
+                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)'
+                  }}
+                >
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3"
+                    style={{ backgroundColor: 'rgba(0, 173, 181, 0.1)' }}
+                  >
+                    <feature.icon size={24} style={{ color: '#00ADB5' }} />
+                  </div>
+                  <div className="text-2xl font-bold mb-1" style={{ color: '#00ADB5' }}>
+                    {feature.count}
+                  </div>
+                  <div className="text-sm text-gray-300">
+                    {feature.label}
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
+        </div>
+
+        {/* Bottom Bar */}
+        <div style={{ backgroundColor: '#222831' }}>
+          <div className="container mx-auto px-4 py-6">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+              {/* Copyright */}
+              <div className="flex items-center gap-3">
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                >
+                  <Heart size={16} className="text-[#00ADB5]" />
+                </motion.div>
+                <div className="text-gray-300 text-sm">
+                  <span>© {currentYear} StreamXCoder. All rights reserved.</span>
+                  <span className="mx-2">•</span>
+                  <span>Made with passion for developers worldwide</span>
+                </div>
+              </div>
+
+              {/* Legal Links */}
+              <div className="flex items-center gap-6">
+                {[
+                  { label: 'Privacy Policy', path: '/privacy' },
+                  { label: 'Terms of Service', path: '/terms' },
+                  { label: 'Cookie Policy', path: '/cookies' },
+                  { label: 'Contact', path: '/contact' },
+                ].map((link) => (
+                  <Link
+                    key={link.label}
+                    to={link.path}
+                    className="text-sm text-gray-400 hover:text-white transition-colors"
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+
+              {/* Back to Top Button */}
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={scrollToTop}
+                className="w-12 h-12 rounded-full flex items-center justify-center group"
+                style={{ 
+                  background: 'linear-gradient(135deg, #00ADB5 0%, #393E46 100%)'
+                }}
+              >
+                <ArrowUp size={20} className="text-white group-hover:-translate-y-1 transition-transform" />
+              </motion.button>
+            </div>
+
+            {/* Trust Badges */}
+            <div className="flex flex-wrap justify-center items-center gap-6 mt-8 pt-6 border-t"
+              style={{ borderColor: 'rgba(255, 255, 255, 0.1)' }}
+            >
+              <div className="flex items-center gap-2 text-sm text-gray-400">
+                <Shield size={16} className="text-green-400" />
+                <span>SSL Secured</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-400">
+                <Star size={16} className="text-yellow-400" />
+                <span>4.9/5 Rating</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-400">
+                <Coffee size={16} className="text-orange-400" />
+                <span>24/7 Support</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-400">
+                <FileCode size={16} className="text-purple-400" />
+                <span>Open Source</span>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Bottom Bar - #00ADB5 */}
-      <div style={{ backgroundColor: '#00ADB5', color: '#FFFFFF' }}>
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="flex items-center gap-2 mb-4 md:mb-0">
-              <Heart size={16} fill="#FFFFFF" />
-              <span className="text-sm">
-                Made with passion for the developer community
-              </span>
-            </div>
-            
-            <div className="text-sm text-center md:text-right">
-              <p>© {currentYear} StreamXCoder. All rights reserved.</p>
-              <p className="mt-1 opacity-90">
-                <a href="https://example.com/privacy" target="_blank" rel="noopener noreferrer" className="hover:underline mx-2">
-                  Privacy Policy
-                </a>
-                <span>•</span>
-                <a href="https://example.com/terms" target="_blank" rel="noopener noreferrer" className="hover:underline mx-2">
-                  Terms of Service
-                </a>
-                <span>•</span>
-                <a href="mailto:contact@example.com" className="hover:underline mx-2">
-                  Contact Us
-                </a>
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Floating CTA */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1 }}
+        className="fixed bottom-6 right-6 z-40"
+      >
+        <motion.div
+          animate={{ scale: [1, 1.05, 1] }}
+          transition={{ duration: 2, repeat: Infinity }}
+          className="relative"
+        >
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            className="px-6 py-3 rounded-xl font-bold shadow-2xl flex items-center gap-2"
+            style={{ 
+              background: 'linear-gradient(135deg, #00ADB5 0%, #61DAFB 100%)',
+              color: '#FFFFFF'
+            }}
+            onClick={() => window.open('/get-started', '_blank')}
+          >
+            <Terminal size={20} />
+            <span>Start Coding Free</span>
+            <Zap size={16} />
+          </motion.button>
+          
+          {/* Glow effect */}
+          <div className="absolute inset-0 rounded-xl blur-xl opacity-50 -z-10"
+            style={{ backgroundColor: '#00ADB5' }}
+          />
+        </motion.div>
+      </motion.div>
     </footer>
   );
 };
