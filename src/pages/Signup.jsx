@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+// Signup.js - Add this import at the top (after other imports):
+import { useAuth } from '../context/AuthContext';
 import { 
   Rocket, 
   Sparkles, 
@@ -21,8 +23,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 
-// TEMPORARY: Mock useAuth hook (delete this once you create the real AuthContext)
-const useAuth = () => {
+const useMockAuth = () => {  // ✅ Different name!
   return {
     user: null,
     loading: false,
@@ -47,7 +48,6 @@ const useAuth = () => {
     clearError: () => {}
   };
 };
-
 const Signup = () => {
   const navigate = useNavigate();
   const { signup, loginWithGoogle, loading, error, clearError } = useAuth();
@@ -88,30 +88,30 @@ const Signup = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match!');
-      return;
-    }
+  e.preventDefault();
+  
+  if (formData.password !== formData.confirmPassword) {
+    alert('Passwords do not match!');
+    return;
+  }
 
-    try {
-      await signup(formData.email, formData.password, formData.displayName);
-      navigate('/dashboard');
-    } catch (err) {
-      console.error('Signup error:', err);
-    }
-  };
+  try {
+    await signup(formData.email, formData.password, formData.displayName, selectedTechs);
+    navigate('/login');
+  } catch (err) {
+    // Error is already handled by AuthContext
+    console.error('Signup error:', err);
+  }
+};
 
   const handleGoogleSignup = async () => {
-    try {
-      await loginWithGoogle();
-      navigate('/dashboard');
-    } catch (err) {
-      console.error('Google signup error:', err);
-    }
-  };
-
+  try {
+    await loginWithGoogle();
+    navigate('/dashboard');
+  } catch (err) {
+    console.error('Google signup error:', err);
+  }
+};  
   const technologies = [
     { id: 'react', name: 'React', color: '#61DAFB', icon: '⚛️' },
     { id: 'js', name: 'JavaScript', color: '#F7DF1E', icon: '🟡' },
