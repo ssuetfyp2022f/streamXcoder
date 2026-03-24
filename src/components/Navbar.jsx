@@ -227,10 +227,9 @@ const Navbar = () => {
   // Navigation items
   const navItems = [
     { path: '/', label: 'Home', icon: Home, color: '#00ADB5' },
-    { path: '/videos', label: 'Videos', icon: Video, color: '#FF6B35' },
     { path: '/editor', label: 'Editor', icon: Code, color: '#61DAFB' },
     { path: '/courses', label: 'Courses', icon: BookOpen, color: '#8CC84B' },
-    { path: '/trending', label: 'Trending', icon: TrendingUp, color: '#FF4081' },
+    
   ];
 
   return (

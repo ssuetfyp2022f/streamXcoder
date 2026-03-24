@@ -79,6 +79,7 @@ import Dashboard from "./pages/Dashboard";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Loader from "./components/Loader";
+import Coursespage from "./pages/Coursespage";
 
 const Layout = ({ children }) => {
   const location = useLocation();
@@ -130,7 +131,11 @@ function App() {
                 <Dashboard />
               </Layout>
             } />
-            
+            <Route path="/courses" element={
+              <Layout>
+                <Coursespage />
+              </Layout>
+            } />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
           </Routes>
