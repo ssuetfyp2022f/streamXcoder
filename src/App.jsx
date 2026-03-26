@@ -81,6 +81,7 @@ import Footer from "./components/Footer";
 import Loader from "./components/Loader";
 import Coursespage from "./pages/Coursespage";
 
+
 const Layout = ({ children }) => {
   const location = useLocation();
   const hideNavbarFooter = ['/login', '/signup'].includes(location.pathname);
@@ -131,6 +132,8 @@ function App() {
                 <Dashboard />
               </Layout>
             } />
+            
+            
             <Route path="/courses" element={
               <Layout>
                 <Coursespage />
