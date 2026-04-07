@@ -4,7 +4,7 @@ import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
-// Your Firebase configuration (REPLACE with your actual config)
+
 const firebaseConfig = {
   apiKey: "AIzaSyCsACdjAfz8D1Tq6-OlyMMmu9wlu6YaxWo",
   authDomain: "streamxcoder.firebaseapp.com",
