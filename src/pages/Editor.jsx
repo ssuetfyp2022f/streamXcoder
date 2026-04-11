@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Editor from "@monaco-editor/react";
 import { useParams } from "react-router-dom";
-import { Play, X, Loader, ChevronDown, Terminal } from "lucide-react";
+import { Play, Trash, Download, X, Loader, Terminal } from "lucide-react";
 
 const CodingEditor = () => {
   const { videoId } = useParams();
@@ -18,6 +18,47 @@ const CodingEditor = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [showOutput, setShowOutput] = useState(false);
   const outputRef = useRef(null);
+
+
+  useEffect(() => {
+    const templates = {
+      javascript: "// JS code here",
+      python: "# Python code here",
+      cpp: `#include <iostream>
+using namespace std;
+
+int main() {
+  cout << "Hello World!";
+  return 0;
+}`,
+
+      csharp: `using System;
+
+namespace HelloWorld
+{
+  class Program
+  {
+    static void Main(string[] args)
+    {
+      Console.WriteLine("Hello World!");  
+    }
+  }
+}`,
+      html: `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+</head>
+<body>
+    
+</body>
+</html>`,
+    };
+
+    setCode(templates[language] || "");
+  }, [language]);
 
   // Extract YouTube ID
   const extractYoutubeId = (url) => {
@@ -188,6 +229,7 @@ const CodingEditor = () => {
       setRuntimeError("Error running code");
       setIsRunning(false);
     }
+
   };
 
   return (
@@ -231,7 +273,7 @@ const CodingEditor = () => {
           <select
             value={language}
             onChange={(e) => setLanguage(e.target.value)}
-            className="px-3 py-2 rounded-lg bg-[#1b2b55] border border-white/20 focus:outline-none focus:border-[#00ADB5]"
+            className="px-2 py-2 rounded-lg bg-[#1b2b55] border border-white/20 focus:outline-none focus:border-[#00ADB5] "
           >
             <option value="html">HTML</option>
             <option value="css">CSS</option>
@@ -244,7 +286,7 @@ const CodingEditor = () => {
           <button
             onClick={runCode}
             disabled={isRunning}
-            className="px-5 py-2 bg-linear-to-r from-[#00ADB5] to-[#61DAFB] text-black rounded-lg font-semibold flex items-center gap-2 hover:shadow-lg transition-all disabled:opacity-50"
+            className="px-2 py-2 bg-linear-to-r from-[#00ADB5] to-[#61DAFB] text-black rounded-lg font-semibold flex items-center gap-1 hover:shadow-lg transition-all disabled:opacity-50"
           >
             {isRunning ? (
               <>
@@ -254,9 +296,27 @@ const CodingEditor = () => {
             ) : (
               <>
                 <Play size={18} />
-                Run Code
+                Run
               </>
             )}
+          </button>
+
+          <button
+            onClick={() => setCode("")}
+            disabled={!code}
+            className="px-2 py-2 bg-linear-to-r from-[#00ADB5] to-[#61DAFB] text-black rounded-lg font-semibold flex items-center gap-1 hover:shadow-lg transition-all disabled:opacity-50"
+          >
+            <Trash size={18} />
+            Clear
+          </button>
+
+          <button
+            onClick={() => setCode("")}
+            disabled={!code}
+            className="px-2 py-2 bg-linear-to-r from-[#00ADB5] to-[#61DAFB] text-black rounded-lg font-semibold flex items-center gap-1 hover:shadow-lg transition-all disabled:opacity-50"
+          >
+            <Download size={18} />
+            Save
           </button>
         </div>
       </div>
