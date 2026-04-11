@@ -5,7 +5,6 @@ import { Play, X, Loader, ChevronDown, Terminal } from "lucide-react";
 
 const CodingEditor = () => {
   const { videoId } = useParams();
-  const [token, settoken] = useState(""); // judge0 token
   const [videoUrl, setVideoUrl] = useState("");
   const [videoSrc, setVideoSrc] = useState("");
   const [code, setCode] = useState("// Start coding here");
@@ -79,8 +78,57 @@ const CodingEditor = () => {
     }
   }, [showOutput]);
 
-  // 🔥 RUN CODE HANDLER with loading & output panel
+
+  // Handle result properly
+  const handleResult = (result) => {
+    if (result.compile_output) {
+      setRuntimeError(result.compile_output);
+    } else if (result.stderr) {
+      setRuntimeError(result.stderr);
+    } else if (result.stdout) {
+      setOutput(result.stdout.trim());
+    } else {
+      setOutput("No output");
+    }
+    setIsRunning(false);
+  };
+
+  const getResult = async (token) => {
+    const url = `https://judge0-ce.p.rapidapi.com/submissions/${token}?base64_encoded=false&fields=stdout,stderr,status_id,compile_output`;
+
+    try {
+      for (let i = 0; i < 10; i++) {
+        const res = await fetch(url, {
+          headers: {
+            "x-rapidapi-key": import.meta.env.VITE_RAPIDAPI_KEY,
+            "x-rapidapi-host": "judge0-ce.p.rapidapi.com",
+          },
+        });
+
+        const result = await res.json();
+
+        if (result.status_id === 1 || result.status_id === 2) {
+          await new Promise((r) => setTimeout(r, 1000));
+        } else {
+          handleResult(result);
+          return;
+        }
+      }
+
+      setRuntimeError("Execution timeout");
+      setIsRunning(false);
+    } catch (err) {
+      console.error(err);
+      setRuntimeError("Error fetching result");
+      setIsRunning(false);
+    }
+  };
+
+
+  // RUN CODE HANDLER with loading & output panel
   const runCode = async () => {
+    if (isRunning) return;
+
     setIsRunning(true);
     setOutput("");
     setRuntimeError("");
@@ -110,102 +158,37 @@ const CodingEditor = () => {
       return;
     }
 
-    const url = 'https://judge0-ce.p.rapidapi.com/submissions?base64_encoded=false&wait=false&fields=*';
-    const options = {
-      method: 'POST',
-      headers: {
-        'x-rapidapi-key': '56c486e727msh0ea389898127f6dp110766jsn872a16e84fec',
-        'x-rapidapi-host': 'judge0-ce.p.rapidapi.com',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        source_code: code,
-        language_id: languageIdMap[language],
-        stdin: input,
-      }),
-    };
-
     try {
-      const response = await fetch(url, options);
-      const result = await response.text();
-      // settoken(result);
-      console.log(result);
+      const res = await fetch(
+        "https://judge0-ce.p.rapidapi.com/submissions?base64_encoded=false&wait=false",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-rapidapi-key": import.meta.env.VITE_RAPIDAPI_KEY,
+            "x-rapidapi-host": "judge0-ce.p.rapidapi.com",
+          },
+          body: JSON.stringify({
+            source_code: code,
+            language_id: languageIdMap[language],
+            stdin: input,
+          }),
+        }
+      );
 
-      const resultObj = JSON.parse(result);
-      const submissionToken = resultObj.token;
+      const data = await res.json();
 
-      settoken(submissionToken);
-
-      // Call result fetch
-      getResult(submissionToken);
-    } catch (error) {
-      console.error(error);
-    }
-
-  };
-
-  // const getResult = async (token) => {
-  //   const url = `https://judge0-ce.p.rapidapi.com/submissions/${token}?base64_encoded=false&fields=stdout,stderr,status_id,time`;
-  //   const options = {
-  //     method: 'GET',
-  //     headers: {
-  //       'x-rapidapi-key': '56c486e727msh0ea389898127f6dp110766jsn872a16e84fec',
-  //       'x-rapidapi-host': 'judge0-ce.p.rapidapi.com',
-  //       'Content-Type': 'application/json'
-  //     }
-  //   };
-
-  //   try {
-  //     const response = await fetch(url, options);
-  //     const result = await response.json();
-  //     // setOutput(result)
-  //     setOutput((result.stdout || "").trim());
-  //     setIsRunning(false);
-  //     console.log(result.stdout);
-  //   } catch (error) {
-  //     console.error(error);
-  //   }
-  const getResult = async (token) => {
-  const url = `https://judge0-ce.p.rapidapi.com/submissions/${token}?base64_encoded=false&fields=stdout,stderr,status_id,time,compile_output`;
-
-  const options = {
-    method: "GET",
-    headers: {
-      "x-rapidapi-key": "YOUR_KEY",
-      "x-rapidapi-host": "judge0-ce.p.rapidapi.com",
-    },
-  };
-
-  try {
-    let result;
-
-    // 🔁 Poll until execution complete
-    while (true) {
-      const response = await fetch(url, options);
-      result = await response.json();
-
-      if (result.status_id === 1 || result.status_id === 2) {
-        // still processing
-        await new Promise((res) => setTimeout(res, 1000));
-      } else {
-        break;
+      if (!data.token) {
+        throw new Error("No token received");
       }
+
+      getResult(data.token);
+    } catch (err) {
+      console.error(err);
+      setRuntimeError("Error running code");
+      setIsRunning(false);
     }
-
-    if (result.stderr) {
-      setRuntimeError(result.stderr);
-    } else {
-      setOutput((result.stdout || "").trim());
-    }
-
-    setIsRunning(false);
-  } catch (error) {
-    console.error(error);
-    setIsRunning(false);
-  }
-
   };
-
 
   return (
     <div className="h-screen flex flex-col bg-[#1b2b55] text-white">
@@ -261,7 +244,7 @@ const CodingEditor = () => {
           <button
             onClick={runCode}
             disabled={isRunning}
-            className="px-5 py-2 bg-gradient-to-r from-[#00ADB5] to-[#61DAFB] text-black rounded-lg font-semibold flex items-center gap-2 hover:shadow-lg transition-all disabled:opacity-50"
+            className="px-5 py-2 bg-linear-to-r from-[#00ADB5] to-[#61DAFB] text-black rounded-lg font-semibold flex items-center gap-2 hover:shadow-lg transition-all disabled:opacity-50"
           >
             {isRunning ? (
               <>
@@ -390,7 +373,7 @@ const CodingEditor = () => {
           </div>
 
           {/* Small handle to drag? (optional) */}
-          <div className="h-1 w-full bg-gradient-to-r from-[#00ADB5] to-transparent"></div>
+          <div className="h-1 w-full bg-linear-to-r from-[#00ADB5] to-transparent"></div>
         </div>
       )}
     </div>
