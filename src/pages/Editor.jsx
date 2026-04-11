@@ -1,257 +1,3 @@
-// import React, { useState, useEffect, useRef } from "react";
-// import Editor from "@monaco-editor/react";
-// import { useParams } from "react-router-dom";
-
-
-// const CodingEditor = () => {
-//   const { videoId } = useParams();
-//   const [videoUrl, setVideoUrl] = useState("");
-//   const [videoSrc, setVideoSrc] = useState("");
-//   const [code, setCode] = useState("// Start coding here");
-//   const [videoSourceOption, setVideoSourceOption] = useState("");
-//   const [language, setLanguage] = useState("javascript");
-//   const [error, setError] = useState("");
-//   const debounceRef = useRef(null);
-//   const [output, setOutput] = useState("");
-//   const [runtimeError, setRuntimeError] = useState("");
-//   const [input, setInput] = useState("");
-
-
-//   // Extract YouTube ID
-//   const extractYoutubeId = (url) => {
-//     const regExp = /(?:youtube\.com.*(?:\?|&)v=|youtu\.be\/)([^&]+)/;
-//     const match = url.match(regExp);
-//     return match ? match[1] : null;
-//   };
-
-//   // Load saved code
-//   useEffect(() => {
-//     if (videoId) {
-//       const savedCode = localStorage.getItem(`code-${videoId}`);
-//       if (savedCode) setCode(savedCode);
-//     }
-//   }, [videoId]);
-
-//   // Save code
-//   useEffect(() => {
-//     if (videoId) localStorage.setItem(`code-${videoId}`, code);
-//   }, [code, videoId]);
-
-//   // Load video
-//   useEffect(() => {
-//     if (debounceRef.current) clearTimeout(debounceRef.current);
-
-//     debounceRef.current = setTimeout(() => {
-//       setError("");
-
-//       if (videoId) {
-//         setVideoSrc(`https://www.youtube.com/embed/${videoId}`);
-//         return;
-//       }
-
-//       if (videoSourceOption === "youtube" && videoUrl) {
-//         const id = extractYoutubeId(videoUrl);
-//         if (id) setVideoSrc(`https://www.youtube.com/embed/${id}`);
-//         else {
-//           setVideoSrc("");
-//           setError("Invalid YouTube URL");
-//         }
-//       }
-//     }, 500);
-
-//     return () => clearTimeout(debounceRef.current);
-//   }, [videoId, videoUrl, videoSourceOption]);
-
-//   const loadLocalVideo = (e) => {
-//     const file = e.target.files[0];
-//     if (!file) return;
-//     const url = URL.createObjectURL(file);
-//     setVideoSrc(url);
-//   };
-
-//   // 🔥 RUN CODE HANDLER
-//   const runCode = async () => {
-//     setOutput("");
-//     setRuntimeError("");
-
-//     const languageIdMap = {
-//       javascript: 63,
-//       python: 71,
-//       cpp: 54,
-//       csharp: 51,
-//     };
-
-//     // ✅ HTML / CSS (local render)
-//     if (language === "html" || language === "css") {
-//       const iframe = document.getElementById("output-frame");
-//       const doc = iframe.contentDocument || iframe.contentWindow.document;
-
-//       doc.open();
-
-//       if (language === "html") {
-//         doc.write(code);
-//       } else {
-//         doc.write(`<style>${code}</style><h1>CSS Output</h1>`);
-//       }
-
-//       doc.close();
-//       return;
-//     }
-
-//     // ✅ API execution (Judge0)
-//     try {
-//       const res = await fetch(
-//         "http://192.168.100.65:2358/submissions/?base64_encoded=false&wait=true",
-//         {
-//           method: "POST",
-//           headers: {
-//             "Content-Type": "application/json",
-//           },
-//           body: JSON.stringify({
-//             source_code: code,
-//             language_id: languageIdMap[language],
-//             stdin: input,
-//           }),
-//         }
-//       );
-
-//       const data = await res.json();
-
-//       if (data.stderr) {
-//         setRuntimeError(data.stderr);
-//       } else if (data.compile_output) {
-//         setRuntimeError(data.compile_output);
-//       } else {
-//         setOutput(data.stdout || "No output");
-//       }
-
-//     } catch (err) {
-//       setRuntimeError("Error: " + err.message);
-//     }
-//   };
-
-//   return (
-//     <div className="h-screen flex flex-col bg-[#1b2b55] text-white">
-
-//       {/* TOP BAR */}
-//       <div className="p-4 flex flex-wrap items-center mt-4 bg-[#0f1f3d] border-b border-white/10 rounded-b-xl justify-between">
-
-//         {/* Left side: video source inputs */}
-//         <div className="flex flex-wrap gap-4 items-center">
-//           <select
-//             value={videoSourceOption}
-//             onChange={(e) => setVideoSourceOption(e.target.value)}
-//             className="px-3 py-2 rounded-lg bg-[#1b2b55]"
-//           >
-//             <option value="" hidden>Select Video Source</option>
-//             <option value="youtube">YouTube</option>
-//             <option value="local">Local</option>
-//           </select>
-
-//           {videoSourceOption === "youtube" && (
-//             <input
-//               type="text"
-//               placeholder="Paste URL..."
-//               value={videoUrl}
-//               onChange={(e) => setVideoUrl(e.target.value)}
-//               className="px-3 py-2 rounded-lg bg-[#1b2b55]"
-//             />
-//           )}
-
-//           {videoSourceOption === "local" && (
-//             <input type="file" accept="video/*" onChange={loadLocalVideo} />
-//           )}
-//         </div>
-
-//         {/* Right side: language selector + run button */}
-//         <div className="flex gap-4 items-center">
-//           <select
-//             value={language}
-//             onChange={(e) => setLanguage(e.target.value)}
-//             className="px-3 py-2 rounded-lg bg-[#1b2b55]"
-//           >
-//             <option value="html">HTML</option>
-//             <option value="css">CSS</option>
-//             <option value="javascript">JavaScript</option>
-//             <option value="python">Python</option>
-//             <option value="cpp">C++</option>
-//             <option value="csharp">C#</option>
-//           </select>
-
-//           <button
-//             onClick={runCode}
-//             className="px-4 py-2 bg-green-500 text-black rounded-lg font-semibold"
-//           >
-//             Run Code
-//           </button>
-//         </div>
-
-//       </div>
-
-//       {/* MAIN CONTENT */}
-//       <div className="flex flex-1 overflow-hidden">
-
-//         {/* LEFT: VIDEO */}
-//         <div className="w-1/2 bg-black flex items-center justify-center">
-//           {videoSrc?.includes("youtube") ? (
-//             <iframe
-//               src={videoSrc}
-//               className="w-full h-full"
-//               allowFullScreen
-//             />
-//           ) : (
-//             videoSrc && (
-//               <video
-//                 src={videoSrc}
-//                 controls
-//                 className="w-full h-full object-contain"
-//               />
-//             )
-//           )}
-//         </div>
-
-//         {/* RIGHT: EDITOR */}
-//         <div className="w-1/2 bg-[#0f1f3d]">
-//           <Editor
-//             height="100%"
-//             language={language}
-//             value={code}
-//             theme="vs-dark"
-//             onChange={(value) => setCode(value || "")}
-//           />
-//         </div>
-//       </div>
-
-//       {/* BOTTOM: OUTPUT / ERROR */}
-//       <div className="h-[20vh] bg-black border-t border-white/10 p-3 overflow-auto">
-
-//         {language === "html" || language === "css" ? (
-//           <iframe
-//             id="output-frame"
-//             className="w-full h-full bg-white rounded"
-//           />
-//         ) : runtimeError ? (
-//           <pre className="text-red-400 whitespace-pre-wrap">
-//             {runtimeError}
-//           </pre>
-//         ) : (
-//           <pre className="text-green-400 whitespace-pre-wrap">
-//             {output || "Output here..."}
-//           </pre>
-//         )}
-//         <textarea
-//           placeholder="Enter input..."
-//           value={input}
-//           onChange={(e) => setInput(e.target.value)}
-//           className="w-full p-2 mb-2 rounded bg-[#1b2b55] text-white"
-//         />
-//       </div>
-
-//     </div>
-//   );
-// };
-// export default CodingEditor;
-
 import React, { useState, useEffect, useRef } from "react";
 import Editor from "@monaco-editor/react";
 import { useParams } from "react-router-dom";
@@ -259,6 +5,7 @@ import { Play, X, Loader, ChevronDown, Terminal } from "lucide-react";
 
 const CodingEditor = () => {
   const { videoId } = useParams();
+  const [token, settoken] = useState(""); // judge0 token
   const [videoUrl, setVideoUrl] = useState("");
   const [videoSrc, setVideoSrc] = useState("");
   const [code, setCode] = useState("// Start coding here");
@@ -363,38 +110,102 @@ const CodingEditor = () => {
       return;
     }
 
-    // ✅ API execution (Judge0)
+    const url = 'https://judge0-ce.p.rapidapi.com/submissions?base64_encoded=false&wait=false&fields=*';
+    const options = {
+      method: 'POST',
+      headers: {
+        'x-rapidapi-key': '56c486e727msh0ea389898127f6dp110766jsn872a16e84fec',
+        'x-rapidapi-host': 'judge0-ce.p.rapidapi.com',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        source_code: code,
+        language_id: languageIdMap[language],
+        stdin: input,
+      }),
+    };
+
     try {
-      const res = await fetch(
-        "http://192.168.100.65:2358/submissions/?base64_encoded=false&wait=true",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            source_code: code,
-            language_id: languageIdMap[language],
-            stdin: input,
-          }),
-        }
-      );
+      const response = await fetch(url, options);
+      const result = await response.text();
+      // settoken(result);
+      console.log(result);
 
-      const data = await res.json();
+      const resultObj = JSON.parse(result);
+      const submissionToken = resultObj.token;
 
-      if (data.stderr) {
-        setRuntimeError(data.stderr);
-      } else if (data.compile_output) {
-        setRuntimeError(data.compile_output);
-      } else {
-        setOutput(data.stdout || "No output");
-      }
-    } catch (err) {
-      setRuntimeError("Error: " + err.message);
-    } finally {
-      setIsRunning(false);
+      settoken(submissionToken);
+
+      // Call result fetch
+      getResult(submissionToken);
+    } catch (error) {
+      console.error(error);
     }
+
   };
+
+  // const getResult = async (token) => {
+  //   const url = `https://judge0-ce.p.rapidapi.com/submissions/${token}?base64_encoded=false&fields=stdout,stderr,status_id,time`;
+  //   const options = {
+  //     method: 'GET',
+  //     headers: {
+  //       'x-rapidapi-key': '56c486e727msh0ea389898127f6dp110766jsn872a16e84fec',
+  //       'x-rapidapi-host': 'judge0-ce.p.rapidapi.com',
+  //       'Content-Type': 'application/json'
+  //     }
+  //   };
+
+  //   try {
+  //     const response = await fetch(url, options);
+  //     const result = await response.json();
+  //     // setOutput(result)
+  //     setOutput((result.stdout || "").trim());
+  //     setIsRunning(false);
+  //     console.log(result.stdout);
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+  const getResult = async (token) => {
+  const url = `https://judge0-ce.p.rapidapi.com/submissions/${token}?base64_encoded=false&fields=stdout,stderr,status_id,time,compile_output`;
+
+  const options = {
+    method: "GET",
+    headers: {
+      "x-rapidapi-key": "YOUR_KEY",
+      "x-rapidapi-host": "judge0-ce.p.rapidapi.com",
+    },
+  };
+
+  try {
+    let result;
+
+    // 🔁 Poll until execution complete
+    while (true) {
+      const response = await fetch(url, options);
+      result = await response.json();
+
+      if (result.status_id === 1 || result.status_id === 2) {
+        // still processing
+        await new Promise((res) => setTimeout(res, 1000));
+      } else {
+        break;
+      }
+    }
+
+    if (result.stderr) {
+      setRuntimeError(result.stderr);
+    } else {
+      setOutput((result.stdout || "").trim());
+    }
+
+    setIsRunning(false);
+  } catch (error) {
+    console.error(error);
+    setIsRunning(false);
+  }
+
+  };
+
 
   return (
     <div className="h-screen flex flex-col bg-[#1b2b55] text-white">
