@@ -87,23 +87,32 @@ namespace HelloWorld
     debounceRef.current = setTimeout(() => {
       setError("");
 
-      if (videoId) {
-        setVideoSrc(`https://www.youtube.com/embed/${videoId}`);
-        return;
-      }
-
       if (videoSourceOption === "youtube" && videoUrl) {
         const id = extractYoutubeId(videoUrl);
-        if (id) setVideoSrc(`https://www.youtube.com/embed/${id}`);
-        else {
+        if (id) {
+          setVideoSrc(`https://www.youtube.com/embed/${id}`);
+        } else {
           setVideoSrc("");
           setError("Invalid YouTube URL");
         }
+      } else if (videoSourceOption === "local") {
+        // handled separately
+      } else if (videoId) {
+        setVideoSrc(`https://www.youtube.com/embed/${videoId}`);
       }
     }, 500);
 
     return () => clearTimeout(debounceRef.current);
   }, [videoId, videoUrl, videoSourceOption]);
+
+  // ✅ Prevent memory leak (revoke object URL)
+  useEffect(() => {
+    return () => {
+      if (videoSrc && !videoSrc.includes("youtube")) {
+        URL.revokeObjectURL(videoSrc);
+      }
+    };
+  }, [videoSrc]);
 
   const loadLocalVideo = (e) => {
     const file = e.target.files[0];
@@ -334,6 +343,8 @@ namespace HelloWorld
             <iframe
               src={videoSrc}
               className="w-full h-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              referrerPolicy="strict-origin-when-cross-origin"
               allowFullScreen
               title="video"
             />
