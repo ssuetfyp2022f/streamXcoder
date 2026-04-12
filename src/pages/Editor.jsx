@@ -1,9 +1,12 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, } from "react";
 import Editor from "@monaco-editor/react";
-import { useParams } from "react-router-dom";
-import { Play, Trash, Download, X, Loader, Terminal } from "lucide-react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Play, Copy, Trash, Download, X, Loader, Terminal } from "lucide-react";
+import CustomButton from "../components/EditorPageButton";
+import CustomSelect from "../components/EditorPageSelect";
 
 const CodingEditor = () => {
+  const navigate = useNavigate();
   const { videoId } = useParams();
   const [videoUrl, setVideoUrl] = useState("");
   const [videoSrc, setVideoSrc] = useState("");
@@ -244,18 +247,17 @@ namespace HelloWorld
   return (
     <div className="h-screen flex flex-col bg-[#1b2b55] text-white">
       {/* TOP BAR */}
-      <div className="p-4 flex flex-wrap items-center mt-4 bg-[#0f1f3d] border-b border-white/10 rounded-b-xl justify-between">
+      <div className="p-4 flex flex-wrap items-center mt-4 bg-[#0f1f3d] border-b border-white/10 justify-between">
         {/* Left side: video source inputs */}
         <div className="flex flex-wrap gap-4 items-center">
-          <select
+          <CustomSelect
             value={videoSourceOption}
             onChange={(e) => setVideoSourceOption(e.target.value)}
-            className="px-3 py-2 rounded-lg bg-[#1b2b55] border border-white/20 focus:outline-none focus:border-[#00ADB5]"
           >
             <option value="" hidden>Select Video Source</option>
             <option value="youtube">YouTube</option>
             <option value="local">Local</option>
-          </select>
+          </CustomSelect>
 
           {videoSourceOption === "youtube" && (
             <input
@@ -279,10 +281,9 @@ namespace HelloWorld
 
         {/* Right side: language selector + run button */}
         <div className="flex gap-4 items-center">
-          <select
+          <CustomSelect
             value={language}
             onChange={(e) => setLanguage(e.target.value)}
-            className="px-2 py-2 rounded-lg bg-[#1b2b55] border border-white/20 focus:outline-none focus:border-[#00ADB5] "
           >
             <option value="html">HTML</option>
             <option value="css">CSS</option>
@@ -290,12 +291,11 @@ namespace HelloWorld
             <option value="python">Python</option>
             <option value="cpp">C++</option>
             <option value="csharp">C#</option>
-          </select>
+          </CustomSelect>
 
-          <button
+          <CustomButton
             onClick={runCode}
-            disabled={isRunning}
-            className="px-2 py-2 bg-linear-to-r from-[#00ADB5] to-[#61DAFB] text-black rounded-lg font-semibold flex items-center gap-1 hover:shadow-lg transition-all disabled:opacity-50"
+            disabled={isRunning || !code}
           >
             {isRunning ? (
               <>
@@ -305,28 +305,74 @@ namespace HelloWorld
             ) : (
               <>
                 <Play size={18} />
-                Run
+                {/* Run */}
               </>
             )}
-          </button>
+          </CustomButton>
 
-          <button
+          <CustomButton
             onClick={() => setCode("")}
             disabled={!code}
-            className="px-2 py-2 bg-linear-to-r from-[#00ADB5] to-[#61DAFB] text-black rounded-lg font-semibold flex items-center gap-1 hover:shadow-lg transition-all disabled:opacity-50"
           >
             <Trash size={18} />
-            Clear
-          </button>
+            {/* Clear */}
+          </CustomButton>
 
-          <button
-            onClick={() => setCode("")}
+          <CustomButton
             disabled={!code}
-            className="px-2 py-2 bg-linear-to-r from-[#00ADB5] to-[#61DAFB] text-black rounded-lg font-semibold flex items-center gap-1 hover:shadow-lg transition-all disabled:opacity-50"
+            onClick={async () => {
+              const extensions = {
+                javascript: "js",
+                python: "py",
+                cpp: "cpp",
+                csharp: "cs",
+                html: "html",
+                css: "css",
+              };
+
+              const ext = extensions[language] || "txt";
+
+              try {
+                const handle = await window.showSaveFilePicker({
+                  suggestedName: `code.${ext}`,
+                  types: [
+                    {
+                      description: "Code File",
+                      accept: {
+                        "text/plain": [`.${ext}`],
+                      },
+                    },
+                  ],
+                });
+
+                const writable = await handle.createWritable();
+                await writable.write(code);
+                await writable.close();
+
+              } catch (err) {
+                console.log("Save cancelled or not supported", err);
+              }
+            }}
           >
             <Download size={18} />
-            Save
-          </button>
+            {/* Save */}
+          </CustomButton>
+
+
+          <CustomButton
+            disabled={!code}
+            onClick={async () => {
+              try {
+                await navigator.clipboard.writeText(code);
+                alert("Code copied to clipboard!");
+              } catch (err) {
+                console.log("Copy failed", err);
+              }
+            }}
+          >
+            <Copy size={18} />
+          </CustomButton>
+
         </div>
       </div>
 
@@ -358,7 +404,12 @@ namespace HelloWorld
             <div className="text-gray-500 text-center">
               <Terminal size={48} className="mx-auto mb-2 opacity-50" />
               <p>No video selected</p>
-              <p className="text-sm">Choose a video source above</p>
+              <p className="text-sm mb-1.5">Choose a video source above or select one from Courses</p>
+              <CustomButton
+                useFlex={false}
+                onClick={() => navigate("/courses")}>
+                Go to Courses
+              </CustomButton>
             </div>
           )}
         </div>
