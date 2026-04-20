@@ -493,6 +493,7 @@ const Footer = () => {
 
   // Check if current page is the editor page
   const isEditorPage = location.pathname === '/editor' || location.pathname.startsWith('/editor/');
+  const isHomePage = location.pathname === '/';
 
   return (
     <footer className="relative mt-auto overflow-hidden">
@@ -533,6 +534,7 @@ const Footer = () => {
       {/* Main Footer Content */}
       <div className="relative z-10">
         {/* Top Section */}
+        {isHomePage && (
         <div className="py-16" style={{ backgroundColor: '#393E46' }}>
           <div className="container mx-auto px-4">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-12">
@@ -653,7 +655,7 @@ const Footer = () => {
             </div>
           </div>
         </div>
-
+)}
         {/* Bottom Bar */}
         <div style={{ backgroundColor: '#222831' }}>
           <div className="container mx-auto px-4 py-6">
