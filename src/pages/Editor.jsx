@@ -257,7 +257,7 @@ namespace HelloWorld
   }, [code, language]);
 
   return (
-    <div className="h-screen flex flex-col  bg-[#1b2b55] text-white">
+    <div className=" flex flex-col flex-1  bg-[#1b2b55] text-white z-50">
 
       {/* TOP BAR */}
       <div className="pt-2 pb-2 px-4 min-h-16 flex flex-col md:flex-row md:items-center gap-3 bg-[#1b2b55] border-b border-white/10 justify-between">
@@ -315,8 +315,8 @@ namespace HelloWorld
             value={language}
             onChange={(e) => setLanguage(e.target.value)}
           >
-            <option value="html">HTML</option>
-            <option value="css">CSS</option>
+            <option value="html">HTML/CSS</option>
+            {/* <option value="css">CSS</option> */}
             <option value="javascript">JavaScript</option>
             <option value="python">Python</option>
             <option value="cpp">C++</option>
@@ -407,9 +407,9 @@ namespace HelloWorld
       </div>
 
       {/* MAIN CONTENT: Video + Editor take full remaining height */}
-      <div className="h-screen flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden">
         {/* LEFT: VIDEO */}
-        <div className="w-1/2 h-162.5 bg-black flex items-center justify-center relative">
+        <div className="w-1/2 lg:h-170.5 sm:h-211 bg-black flex items-center justify-center relative">
           {error && (
             <div className="absolute top-4 left-4 bg-red-500/80 text-white px-3 py-1 rounded-lg text-sm z-10">
               {error}
@@ -445,7 +445,7 @@ namespace HelloWorld
         </div>
 
         {/* RIGHT: EDITOR */}
-        <div className="w-1/2 h-162.5 bg-[#0f1f3d]">
+        <div className="w-1/2 lg:h-170.5 sm:h-211 bg-[#0f1f3d]">
           <Editor
             height="100%"
             language={language}
@@ -460,6 +460,26 @@ namespace HelloWorld
             }}
           />
         </div>
+      </div>
+
+      {/* // HTML & CSS output */}
+      <div className="rounded bg-gray-400 p-1">
+        {language === "html" || language === "css" ? (
+
+          <iframe
+            id="output-frame"
+            className="w-full h-270 bg-white p-0 m-0 "
+            title="output"
+          />
+
+        ) : runtimeError ? (
+          <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
+            <div className="text-red-400 font-mono text-sm whitespace-pre-wrap">
+              {runtimeError}
+            </div>
+          </div>
+        ) : null
+        }
       </div>
 
       {/* FLOATING OUTPUT PANEL (appears only when showOutput is true) */}
@@ -515,29 +535,12 @@ namespace HelloWorld
 
             {/* Small handle to drag? (optional) */}
             <div className="h-1 w-full bg-linear-to-r from-[#00ADB5] to-transparent"></div>
+
           </div>
+
         )
       }
 
-      {/* // HTML & CSS output */}
-      <div className="">
-        {language === "html" || language === "css" ? (
-
-          <iframe
-            id="output-frame"
-            className="w-full h-48 bg-white p-0 m-0 rounded"
-            title="output"
-          />
-
-        ) : runtimeError ? (
-          <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
-            <div className="text-red-400 font-mono text-sm whitespace-pre-wrap">
-              {runtimeError}
-            </div>
-          </div>
-        ) : null
-        }
-      </div>
 
     </div >
 
