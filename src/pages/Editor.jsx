@@ -177,6 +177,14 @@ namespace HelloWorld
   };
 
 
+  const languageIdMap = {
+    html: "html",
+    javascript: 63,
+    python: 71,
+    cpp: 54,
+    csharp: 51,
+  };
+
   // RUN CODE HANDLER with loading & output panel
   const runCode = async () => {
     if (isRunning) return;
@@ -185,13 +193,6 @@ namespace HelloWorld
     setOutput("");
     setRuntimeError("");
     setShowOutput(true); // Show output panel
-
-    const languageIdMap = {
-      javascript: 63,
-      python: 71,
-      cpp: 54,
-      csharp: 51,
-    };
 
     // ✅ HTML / CSS (local render)
     if (language === "html" || language === "css") {
@@ -315,7 +316,7 @@ namespace HelloWorld
             value={language}
             onChange={(e) => setLanguage(e.target.value)}
           >
-            <option value="html">HTML/CSS</option>
+            <option value="html">HTML & CSS</option>
             {/* <option value="css">CSS</option> */}
             <option value="javascript">JavaScript</option>
             <option value="python">Python</option>
@@ -326,6 +327,7 @@ namespace HelloWorld
           <CustomButton
             onClick={runCode}
             disabled={isRunning || !code}
+            className={`${language == "html"? "hidden":""}`}
           >
             {isRunning ? (
               <>
