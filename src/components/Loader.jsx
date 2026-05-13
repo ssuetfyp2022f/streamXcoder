@@ -18,7 +18,7 @@ const Loader = ({ duration = 3000, message = "Code Along With Videos" }) => {
   if (!show) return null;
 
   return (
-    <div className={`fixed inset-0 flex items-center justify-center z-[9999] transition-all duration-1000 ${
+    <div className={`fixed inset-0 flex items-center justify-center z-9999 transition-all duration-1000 ${
       exitAnimation ? 'opacity-0 backdrop-blur-0' : 'opacity-100 backdrop-blur-xl'
     }`}>
       {/* Blurry Overlay - Light Teal with Transparency */}

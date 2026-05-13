@@ -454,6 +454,9 @@ const Footer = () => {
   const [email, setEmail] = useState('');
   const currentYear = new Date().getFullYear();
   const location = useLocation(); // Get current route
+  // Check if current page is editor
+  const isEditorPage = location.pathname.startsWith('/editor');
+
 
   const handleSubscribe = (e) => {
     e.preventDefault();
@@ -492,7 +495,7 @@ const Footer = () => {
   ];
 
   // Check if current page is the editor page
-  const isEditorPage = location.pathname === '/editor' || location.pathname.startsWith('/editor/');
+  // const isEditorPage = location.pathname === '/editor' || location.pathname.startsWith('/editor/');
   const isHomePage = location.pathname === '/';
 
   return (
@@ -563,7 +566,7 @@ const Footer = () => {
                   </motion.div>
                   
                   <div>
-                    <h2 className="text-3xl font-bold bg-gradient-to-r from-[#00ADB5] via-[#61DAFB] to-[#00ADB5] bg-clip-text text-transparent">
+                    <h2 className="text-3xl font-bold bg-linear-to-r from-[#00ADB5] via-[#61DAFB] to-[#00ADB5] bg-clip-text text-transparent">
                       StreamXCoder
                     </h2>
                     <p className="text-gray-300 mt-1">Learn. Code. Build.</p>

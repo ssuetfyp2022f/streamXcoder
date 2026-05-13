@@ -22,7 +22,6 @@ const CodingEditor = () => {
   const [showOutput, setShowOutput] = useState(false);
   const outputRef = useRef(null);
 
-
   useEffect(() => {
     const templates = {
       javascript: "// JS code here",
@@ -196,17 +195,7 @@ namespace HelloWorld
 
     // ✅ HTML / CSS (local render)
     if (language === "html" || language === "css") {
-      const iframe = document.getElementById("output-frame");
-      if (iframe) {
-        const doc = iframe.contentDocument || iframe.contentWindow.document;
-        doc.open();
-        if (language === "html") {
-          doc.write(code);
-        } else {
-          doc.write(`<style>${code}</style><h1>CSS Output</h1>`);
-        }
-        doc.close();
-      }
+      renderLivePreview();
       setIsRunning(false);
       return;
     }
@@ -244,18 +233,45 @@ namespace HelloWorld
 
   };
 
+  // watch html css
+  const renderLivePreview = () => {
+    const iframe = document.getElementById("output-frame");
+    if (!iframe) return;
+
+    const doc = iframe.contentDocument || iframe.contentWindow.document;
+    doc.open();
+
+    if (language === "html") {
+      doc.write(code);
+    } else if (language === "css") {
+      doc.write(`<style>${code}</style><h1>CSS Output</h1>`);
+    }
+
+    doc.close();
+  };
+
+  useEffect(() => {
+    if (language === "html" || language === "css") {
+      renderLivePreview();
+    }
+  }, [code, language]);
+
   return (
-    <div className="h-screen flex flex-col bg-[#1b2b55] text-white">
+    <div className="h-screen flex flex-col  bg-[#1b2b55] text-white">
+
       {/* TOP BAR */}
-      <div className="p-4 flex flex-wrap items-center mt-4 bg-[#0f1f3d] border-b border-white/10 justify-between">
+      <div className="pt-2 pb-2 px-4 min-h-16 flex flex-col md:flex-row md:items-center gap-3 bg-[#1b2b55] border-b border-white/10 justify-between">
+
         {/* Left side: video source inputs */}
-        <div className="flex flex-wrap gap-4 items-center">
+        <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:items-center w-full md:w-auto">
+
           <CustomSelect
             value={videoSourceOption}
             onChange={(e) => setVideoSourceOption(e.target.value)}
+            className="w-full sm:w-auto"
           >
             <option value="" hidden>Select Video Source</option>
-            <option value="youtube">YouTube</option>
+            <option value="youtube">YouTube URL</option>
             <option value="local">Local</option>
           </CustomSelect>
 
@@ -265,7 +281,10 @@ namespace HelloWorld
               placeholder="Paste YouTube URL..."
               value={videoUrl}
               onChange={(e) => setVideoUrl(e.target.value)}
-              className="px-3 py-2 rounded-lg bg-[#1b2b55] border border-white/20 focus:outline-none focus:border-[#00ADB5] w-80"
+              className="
+              px-3 py-2 mt-2 rounded-xl font-medium 
+              bg-linear-to-r from-[#00ADB5] via-[#38bdf8] to-[#61DAFB]
+              text-black shadow-md shadow-cyan-500/20 "
             />
           )}
 
@@ -274,9 +293,20 @@ namespace HelloWorld
               type="file"
               accept="video/*"
               onChange={loadLocalVideo}
-              className="text-sm text-gray-300 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-[#00ADB5] file:text-white hover:file:bg-[#0099a8]"
+              className="
+              w-full sm:w-auto text-sm text-gray-300 mt-2
+              file:px-3 file:py-2 file:rounded-xl file:font-medium file:border-0
+              file:bg-linear-to-r file:from-[#00ADB5] file:via-[#38bdf8] file:to-[#61DAFB]
+            file:text-black
+              file:shadow-md file:shadow-cyan-500/20
+              file:transition-all file:duration-300 file:ease-out
+              hover:file:scale-105 hover:file:shadow-cyan-400/40 hover:file:brightness-110 hover:file:shadow-[0_0_20px_rgba(0,173,181,0.5)]
+              active:file:scale-95
+              disabled:file:opacity-40 disabled:file:cursor-not-allowed"
             />
+
           )}
+
         </div>
 
         {/* Right side: language selector + run button */}
@@ -377,9 +407,9 @@ namespace HelloWorld
       </div>
 
       {/* MAIN CONTENT: Video + Editor take full remaining height */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="h-screen flex flex-1 overflow-hidden">
         {/* LEFT: VIDEO */}
-        <div className="w-1/2 bg-black flex items-center justify-center relative">
+        <div className="w-1/2 h-162.5 bg-black flex items-center justify-center relative">
           {error && (
             <div className="absolute top-4 left-4 bg-red-500/80 text-white px-3 py-1 rounded-lg text-sm z-10">
               {error}
@@ -415,7 +445,7 @@ namespace HelloWorld
         </div>
 
         {/* RIGHT: EDITOR */}
-        <div className="w-1/2 bg-[#0f1f3d]">
+        <div className="w-1/2 h-162.5 bg-[#0f1f3d]">
           <Editor
             height="100%"
             language={language}
@@ -433,72 +463,84 @@ namespace HelloWorld
       </div>
 
       {/* FLOATING OUTPUT PANEL (appears only when showOutput is true) */}
-      {showOutput && (
-        <div
-          ref={outputRef}
-          className="fixed bottom-0 left-0 right-0 z-50 bg-[#0f1f3d] border-t-2 border-[#00ADB5] shadow-2xl animate-slideUp"
-        >
-          <div className="flex items-center justify-between px-4 py-2 bg-[#1b2b55] border-b border-white/10">
-            <div className="flex items-center gap-2">
-              <Terminal size={18} className="text-[#00ADB5]" />
-              <span className="font-semibold">Output Console</span>
-              {isRunning && (
-                <span className="text-xs text-yellow-400 flex items-center gap-1">
-                  <Loader size={12} className="animate-spin" />
-                  Executing...
-                </span>
+      {
+        !(language === "html" || language === "css") && showOutput && (
+          <div
+            ref={outputRef}
+            className="fixed bottom-0 left-0 right-0 z-50 bg-[#0f1f3d] border-t-2 border-[#00ADB5] shadow-2xl animate-slideUp"
+          >
+            <div className="flex items-center justify-between px-4 py-2 bg-[#1b2b55] border-b border-white/10">
+              <div className="flex items-center gap-2">
+                <Terminal size={18} className="text-[#00ADB5]" />
+                <span className="font-semibold">Output Console</span>
+                {isRunning && (
+                  <span className="text-xs text-yellow-400 flex items-center gap-1">
+                    <Loader size={12} className="animate-spin" />
+                    Executing...
+                  </span>
+                )}
+              </div>
+              <button
+                onClick={() => setShowOutput(false)}
+                className="p-1 hover:bg-white/10 rounded-lg transition"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+
+            <div className="p-4 max-h-64 overflow-auto">
+              {/* Input field */}
+              {!(language === "html" || language === "css") && (
+                <div className="mb-3">
+                  <label className="text-sm text-gray-300 block mb-1">Program Input (stdin):</label>
+                  <textarea
+                    placeholder="Enter input here..."
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    className="w-full p-2 rounded bg-[#1b2b55] border border-white/10 text-white font-mono text-sm"
+                    rows={2}
+                  />
+                </div>
+              )}
+              {/* Output display */}
+              {(
+                <div className="bg-black/40 rounded-lg p-3 border border-white/10">
+                  <pre className="text-green-400 font-mono text-sm whitespace-pre-wrap">
+                    {output || "Click 'Run Code' to see output..."}
+                  </pre>
+                </div>
               )}
             </div>
-            <button
-              onClick={() => setShowOutput(false)}
-              className="p-1 hover:bg-white/10 rounded-lg transition"
-            >
-              <X size={18} />
-            </button>
-          </div>
 
-          <div className="p-4 max-h-64 overflow-auto">
-            {/* Input field */}
-            <div className="mb-3">
-              <label className="text-sm text-gray-300 block mb-1">Program Input (stdin):</label>
-              <textarea
-                placeholder="Enter input here..."
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                className="w-full p-2 rounded bg-[#1b2b55] border border-white/10 text-white font-mono text-sm"
-                rows={2}
-              />
+            {/* Small handle to drag? (optional) */}
+            <div className="h-1 w-full bg-linear-to-r from-[#00ADB5] to-transparent"></div>
+          </div>
+        )
+      }
+
+      {/* // HTML & CSS output */}
+      <div className="">
+        {language === "html" || language === "css" ? (
+
+          <iframe
+            id="output-frame"
+            className="w-full h-48 bg-white p-0 m-0 rounded"
+            title="output"
+          />
+
+        ) : runtimeError ? (
+          <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
+            <div className="text-red-400 font-mono text-sm whitespace-pre-wrap">
+              {runtimeError}
             </div>
-
-            {/* Output display */}
-            {language === "html" || language === "css" ? (
-              <div className="bg-white rounded-lg p-2">
-                <iframe
-                  id="output-frame"
-                  className="w-full h-48 bg-white rounded"
-                  title="output"
-                />
-              </div>
-            ) : runtimeError ? (
-              <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
-                <div className="text-red-400 font-mono text-sm whitespace-pre-wrap">
-                  {runtimeError}
-                </div>
-              </div>
-            ) : (
-              <div className="bg-black/40 rounded-lg p-3 border border-white/10">
-                <pre className="text-green-400 font-mono text-sm whitespace-pre-wrap">
-                  {output || "Click 'Run Code' to see output..."}
-                </pre>
-              </div>
-            )}
           </div>
+        ) : null
+        }
+      </div>
 
-          {/* Small handle to drag? (optional) */}
-          <div className="h-1 w-full bg-linear-to-r from-[#00ADB5] to-transparent"></div>
-        </div>
-      )}
-    </div>
+    </div >
+
   );
 };
 

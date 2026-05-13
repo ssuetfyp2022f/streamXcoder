@@ -1,18 +1,16 @@
-
-
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Home, 
-  Video, 
-  Code, 
-  User, 
-  LogIn, 
-  Menu, 
-  X, 
-  LogOut, 
-  Upload, 
+import {
+  Home,
+  Video,
+  Code,
+  User,
+  LogIn,
+  Menu,
+  X,
+  LogOut,
+  Upload,
   Search,
   Sparkles,
   Bell,
@@ -35,8 +33,50 @@ const Navbar = () => {
   const [notifications, setNotifications] = useState(3);
   const [darkMode, setDarkMode] = useState(true);
   const [activeDropdown, setActiveDropdown] = useState(null);
+  const [showNavbar, setShowNavbar] = useState(true); // for auto hide
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Check if current page is editor
+  const isEditorPage = location.pathname.startsWith('/editor');
+  // Auto hide navbar on editor page after 5 sec
+  useEffect(() => {
+    let timer;
+
+    if (isEditorPage) {
+      setShowNavbar(true);
+
+      timer = setTimeout(() => {
+        setShowNavbar(false);
+      }, 3000);
+    } else {
+      setShowNavbar(true);
+    }
+
+    return () => clearTimeout(timer);
+  }, [isEditorPage]);
+
+  // unhide navbar on mouse 
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (isEditorPage && e.clientY < 20) {
+        setShowNavbar(true);
+
+        clearTimeout(window.navbarTimer);
+
+        window.navbarTimer = setTimeout(() => {
+          setShowNavbar(false);
+        }, 3000);
+      }
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      clearTimeout(window.navbarTimer);
+    };
+  }, [isEditorPage]);
 
   // Scroll effect
   useEffect(() => {
@@ -86,13 +126,16 @@ const Navbar = () => {
       </AnimatePresence>
 
       {/* Main Navbar */}
-      <nav 
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-          isScrolled 
+      <nav
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500
+          ${showNavbar ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'} 
+          ${isScrolled
             ? 'backdrop-blur-xl bg-[#393E46]/90 shadow-2xl shadow-black/20'
             : 'backdrop-blur-md bg-[#393E46]/80'
-        }`} 
-        style={{ 
+          } 
+          ${isEditorPage ? 'py-0 lg:h-14 sm:h-10' : 'py-2'}
+           `}
+        style={{
           borderBottom: isScrolled ? '1px solid rgba(255,255,255,0.1)' : 'none'
         }}
       >
@@ -102,7 +145,7 @@ const Navbar = () => {
             <motion.div
               key={i}
               className="absolute rounded-full opacity-10"
-              style={{ 
+              style={{
                 backgroundColor: '#00ADB5',
                 width: 16 + i * 24,
                 height: 16 + i * 24,
@@ -122,31 +165,32 @@ const Navbar = () => {
           ))}
         </div>
 
-        <div className="container mx-auto px-4 py-2 relative z-10"> {/* reduced py-3 to py-2 */}
+        <div className="container mx-auto px-2 relative z-10">
           <div className="flex items-center justify-between">
-            
+
             {/* Logo with Animation */}
             <motion.div
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               className="flex items-center gap-1.5"
-              
+
             >
-              <Link to="/" className="flex items-center gap-2 group"> {/* reduced gap-3 to gap-2 */}
-                <motion.div 
+              <Link to="/" className="flex items-center gap-2 group">
+                <motion.div
                   className="relative"
                   whileHover={{ rotate: 360 }}
                   transition={{ duration: 0.5 }}
                 >
-                  <div className="w-9 h-9 rounded-xl flex items-center justify-center relative overflow-hidden group-hover:shadow-lg group-hover:shadow-[#00ADB5]/30 transition-all duration-300" /* reduced w-12 h-12 to w-9 h-9 */
-                    style={{ 
+                  <div className={` flex items-center justify-center relative overflow-hidden group-hover:shadow-lg group-hover:shadow-[#00ADB5]/30 transition-all duration-300 ${isEditorPage ? 'w-7 h-7' : 'w-9 h-9'}
+                  ${isEditorPage ? 'rounded-lg' : 'rounded-xl'}`}
+                    style={{
                       background: 'linear-gradient(135deg, #00ADB5 0%, #393E46 100%)',
                     }}
                   >
-                    <Code size={18} className="text-white" /> {/* reduced size 24 to 18 */}
-                    
+                    <Code size={isEditorPage ? 12 : 18} className="text-white" />
+
                     {/* Glow effect */}
-                    <motion.div 
+                    <motion.div
                       className="absolute inset-0 rounded-xl"
                       style={{ backgroundColor: '#00ADB5' }}
                       initial={{ opacity: 0 }}
@@ -154,32 +198,34 @@ const Navbar = () => {
                       transition={{ duration: 2, repeat: Infinity }}
                     />
                   </div>
-                  
+
                   {/* Floating sparkles */}
                   <motion.div
-                    animate={{ 
+                    animate={{
                       rotate: 360,
                       scale: [1, 1.2, 1]
                     }}
-                    transition={{ 
+                    transition={{
                       rotate: { duration: 20, repeat: Infinity, ease: "linear" },
                       scale: { duration: 2, repeat: Infinity }
                     }}
                     className="absolute -top-1 -right-1"
                   >
-                    <Sparkles size={10} className="text-[#00ADB5]" /> {/* reduced size 12 to 10 */}
+                    <Sparkles size={isEditorPage ? 8 : 10} className="text-[#00ADB5]" />
                   </motion.div>
                 </motion.div>
-                
+
                 <div className="flex flex-col">
-                  <motion.span 
-                    className="text-xl font-bold bg-linear-to-r from-[#00ADB5] to-[#61DAFB] bg-clip-text text-transparent" /* reduced text-2xl to text-xl */
+                  <motion.span
+                    className={`font-bold bg-linear-to-r from-[#00ADB5] to-[#61DAFB] bg-clip-text text-transparent ${isEditorPage ? 'text-base' : 'text-xl'
+                      }`}
                     whileHover={{ scale: 1.02 }}
                   >
                     StreamXCoder
                   </motion.span>
-                  <span className="text-[11px] text-gray-300 flex items-center gap-1"> {/* reduced text-xs to text-[11px] */}
-                    <Zap size={9} className="text-[#00ADB5]" /> {/* reduced size 10 to 9 */}
+                  <span className={`text-gray-300 flex items-center gap-1 ${isEditorPage ? 'text-[9px]' : 'text-[11px]'
+                    }`}>
+                    <Zap size={isEditorPage ? 7 : 9} className="text-[#00ADB5]" />
                     Code Along With Videos
                   </span>
                 </div>
@@ -187,7 +233,7 @@ const Navbar = () => {
             </motion.div>
 
             {/* Desktop Navigation */}
-            <div className="hidden lg:flex items-center gap-7"> {/* reduced gap-2 to gap-1 */}
+            <div className="hidden lg:flex items-center gap-7">
               {navItems.map((item, index) => (
                 <motion.div
                   key={item.path}
@@ -197,18 +243,21 @@ const Navbar = () => {
                 >
                   <Link
                     to={item.path}
-                    className="relative group px-3 py-1.5 rounded-lg mx-0.5 transition-all duration-300" /* reduced px-4 to px-3, py-2 to py-1.5, mx-1 to mx-0.5 */
+                    className={`relative group rounded-lg mx-0.5 transition-all duration-300 ${isEditorPage ? 'px-2 py-1' : 'px-3 py-1.5'
+                      }`}
                     style={{
                       color: location.pathname === item.path ? item.color : '#D1D5DB',
                     }}
                     onMouseEnter={() => setActiveDropdown(item.label)}
                     onMouseLeave={() => setActiveDropdown(null)}
                   >
-                    <div className="flex items-center gap-1.5"> {/* reduced gap-2 to gap-1.5 */}
-                      <item.icon size={16} style={{ color: item.color }} /> {/* reduced size 18 to 16 */}
-                      <span className="font-medium text-sm">{item.label}</span> {/* added text-sm */}
+                    <div className="flex items-center gap-1.5">
+                      <item.icon size={isEditorPage ? 14 : 16} style={{ color: item.color }} />
+                      <span className={`font-medium ${isEditorPage ? 'text-xs' : 'text-sm'}`}>
+                        {item.label}
+                      </span>
                     </div>
-                    
+
                     {/* Active indicator */}
                     {location.pathname === item.path && (
                       <motion.div
@@ -220,10 +269,10 @@ const Navbar = () => {
                         transition={{ type: "spring", stiffness: 200 }}
                       />
                     )}
-                    
+
                     {/* Hover effect */}
                     <div className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                      style={{ 
+                      style={{
                         backgroundColor: `${item.color}20`,
                         boxShadow: `0 0 20px ${item.color}40`
                       }}
@@ -234,25 +283,23 @@ const Navbar = () => {
             </div>
 
             {/* Right Section */}
-            <div className="flex items-center gap-2"> {/* reduced gap-3 to gap-2 */}
-              {/* Search Bar (commented out) */}
-              {/* ... */}
-
+            <div className={`flex items-center ${isEditorPage ? 'gap-1.5' : 'gap-2'}`}>
               {/* Theme Toggle */}
               <motion.button
                 whileHover={{ scale: 1.1, rotate: 15 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={() => setDarkMode(!darkMode)}
-                className="w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-sm hover:shadow-lg transition-all" /* reduced w-10 h-10 to w-8 h-8 */
-                style={{ 
+                className={`rounded-full flex items-center justify-center backdrop-blur-sm hover:shadow-lg transition-all ${isEditorPage ? 'w-6 h-6' : 'w-8 h-8'
+                  }`}
+                style={{
                   backgroundColor: 'rgba(34, 40, 49, 0.8)',
                   border: '1px solid rgba(255, 255, 255, 0.1)'
                 }}
               >
                 {darkMode ? (
-                  <Sun size={16} className="text-yellow-300" /> /* reduced size 20 to 16 */
+                  <Sun size={isEditorPage ? 12 : 16} className="text-yellow-300" />
                 ) : (
-                  <Moon size={16} className="text-blue-400" />
+                  <Moon size={isEditorPage ? 12 : 16} className="text-blue-400" />
                 )}
               </motion.button>
 
@@ -261,18 +308,20 @@ const Navbar = () => {
                 <motion.button
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
-                  className="relative w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-sm" /* reduced w-10 h-10 to w-8 h-8 */
-                  style={{ 
+                  className={`relative rounded-full flex items-center justify-center backdrop-blur-sm ${isEditorPage ? 'w-6 h-6' : 'w-8 h-8'
+                    }`}
+                  style={{
                     backgroundColor: 'rgba(34, 40, 49, 0.8)',
                     border: '1px solid rgba(255, 255, 255, 0.1)'
                   }}
                 >
-                  <Bell size={16} className="text-gray-300" /> /* reduced size 20 to 16 */
+                  <Bell size={isEditorPage ? 12 : 16} className="text-gray-300" />
                   {notifications > 0 && (
-                    <motion.span 
+                    <motion.span
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
-                      className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold" /* reduced w-5 h-5 to w-4 h-4, text-xs to text-[10px] */
+                      className={`absolute -top-1 -right-1 rounded-full flex items-center justify-center font-bold ${isEditorPage ? 'w-3 h-3 text-[8px]' : 'w-4 h-4 text-[10px]'
+                        }`}
                       style={{ backgroundColor: '#FF4081', color: '#FFFFFF' }}
                     >
                       {notifications}
@@ -290,40 +339,42 @@ const Navbar = () => {
                   onMouseEnter={() => setActiveDropdown('user')}
                   onMouseLeave={() => setActiveDropdown(null)}
                 >
-                  <button className="flex items-center gap-1.5 p-0.5 rounded-xl backdrop-blur-sm hover:shadow-lg transition-all group" /* reduced gap-2 to gap-1.5, p-1 to p-0.5 */
-                    style={{ 
+                  <button className={`flex items-center p-0.5 rounded-xl backdrop-blur-sm hover:shadow-lg transition-all group ${isEditorPage ? 'gap-1' : 'gap-1.5'
+                    }`}
+                    style={{
                       backgroundColor: 'rgba(34, 40, 49, 0.8)',
                       border: '1px solid rgba(0, 173, 181, 0.3)'
                     }}
                   >
-                    <div className="w-7 h-7 rounded-full flex items-center justify-center font-bold text-sm relative overflow-hidden" /* reduced w-9 h-9 to w-7 h-7, added text-sm */
-                      style={{ 
+                    <div className={`rounded-full flex items-center justify-center font-bold relative overflow-hidden ${isEditorPage ? 'w-5 h-5 text-xs' : 'w-7 h-7 text-sm'
+                      }`}
+                      style={{
                         background: 'linear-gradient(135deg, #00ADB5 0%, #61DAFB 100%)',
                         color: '#FFFFFF'
                       }}
                     >
                       {userData.avatar}
                       {/* Glow effect */}
-                      <motion.div 
+                      <motion.div
                         className="absolute inset-0 rounded-full"
                         style={{ backgroundColor: '#00ADB5' }}
-                        animate={{ 
+                        animate={{
                           scale: [1, 1.5, 1],
                           opacity: [0.3, 0, 0.3]
                         }}
                         transition={{ duration: 2, repeat: Infinity }}
                       />
                     </div>
-                    <div className="hidden lg:block text-left mr-1"> {/* reduced mr-2 to mr-1 */}
-                      <div className="text-xs font-semibold text-white"> {/* reduced text-sm to text-xs */}
+                    <div className={`hidden lg:block text-left ${isEditorPage ? 'mr-0.5' : 'mr-1'}`}>
+                      <div className={`font-semibold text-white ${isEditorPage ? 'text-[10px]' : 'text-xs'}`}>
                         {userData.name}
                       </div>
-                      <div className="text-[10px] text-gray-300 flex items-center gap-0.5"> {/* reduced text-xs to text-[10px] */}
-                        <Sparkle size={8} className="text-yellow-400" /> {/* reduced size 10 to 8 */}
+                      <div className={`text-gray-300 flex items-center ${isEditorPage ? 'text-[8px] gap-0' : 'text-[10px] gap-0.5'}`}>
+                        <Sparkle size={isEditorPage ? 6 : 8} className="text-yellow-400" />
                         {userData.role}
                       </div>
                     </div>
-                    <ChevronDown size={12} className="text-gray-400 group-hover:rotate-180 transition-transform" /> {/* reduced size 16 to 12 */}
+                    <ChevronDown size={isEditorPage ? 10 : 12} className="text-gray-400 group-hover:rotate-180 transition-transform" />
                   </button>
 
                   {/* Dropdown Menu */}
@@ -333,16 +384,16 @@ const Navbar = () => {
                         initial={{ opacity: 0, y: 10, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                        className="absolute right-0 mt-2 w-56 rounded-xl shadow-2xl overflow-hidden backdrop-blur-xl z-50" /* reduced w-64 to w-56 */
-                        style={{ 
+                        className="absolute right-0 mt-2 rounded-xl shadow-2xl overflow-hidden backdrop-blur-xl z-50 w-56"
+                        style={{
                           backgroundColor: 'rgba(57, 62, 70, 0.95)',
                           border: '1px solid rgba(255, 255, 255, 0.1)'
                         }}
                       >
-                        <div className="p-3 border-b" style={{ borderColor: 'rgba(255,255,255,0.1)' }}> {/* reduced p-4 to p-3 */}
-                          <div className="flex items-center gap-2"> {/* reduced gap-3 to gap-2 */}
-                            <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-base" /* reduced w-12 h-12 to w-10 h-10, text-lg to text-base */
-                              style={{ 
+                        <div className="p-3 border-b" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
+                          <div className="flex items-center gap-2">
+                            <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-base"
+                              style={{
                                 background: 'linear-gradient(135deg, #00ADB5 0%, #61DAFB 100%)',
                                 color: '#FFFFFF'
                               }}
@@ -350,13 +401,13 @@ const Navbar = () => {
                               {userData.avatar}
                             </div>
                             <div>
-                              <div className="font-bold text-white text-sm">{userData.name}</div> {/* added text-sm */}
-                              <div className="text-xs text-gray-300">{userData.role}</div> {/* reduced text-sm to text-xs */}
+                              <div className="font-bold text-white text-sm">{userData.name}</div>
+                              <div className="text-xs text-gray-300">{userData.role}</div>
                             </div>
                           </div>
                         </div>
-                        
-                        <div className="py-1"> {/* reduced py-2 to py-1 */}
+
+                        <div className="py-1">
                           {[
                             { icon: User, label: 'Profile', color: '#00ADB5' },
                             { icon: Video, label: 'My Videos', color: '#FF6B35' },
@@ -365,22 +416,22 @@ const Navbar = () => {
                           ].map((item) => (
                             <button
                               key={item.label}
-                              className="w-full px-3 py-2 flex items-center gap-2 text-gray-300 hover:text-white hover:bg-white/5 transition-all text-sm" /* reduced px-4 to px-3, py-3 to py-2, gap-3 to gap-2 */
+                              className="w-full px-3 py-2 flex items-center gap-2 text-gray-300 hover:text-white hover:bg-white/5 transition-all text-sm"
                             >
-                              <item.icon size={16} style={{ color: item.color }} /> {/* reduced size 18 to 16 */}
+                              <item.icon size={16} style={{ color: item.color }} />
                               <span>{item.label}</span>
                             </button>
                           ))}
                         </div>
-                        
-                        <div className="p-3 border-t" style={{ borderColor: 'rgba(255,255,255,0.1)' }}> {/* reduced p-4 to p-3 */}
-                          <button className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg font-medium hover:shadow-lg transition-all text-sm" /* reduced px-4 to px-3, py-2.5 to py-2 */
-                            style={{ 
+
+                        <div className="p-3 border-t" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
+                          <button className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg font-medium hover:shadow-lg transition-all text-sm"
+                            style={{
                               backgroundColor: '#FF4081',
                               color: '#FFFFFF'
                             }}
                           >
-                            <LogOut size={16} /> {/* reduced size 18 to 16 */}
+                            <LogOut size={16} />
                             <span>Logout</span>
                           </button>
                         </div>
@@ -389,34 +440,36 @@ const Navbar = () => {
                   </AnimatePresence>
                 </motion.div>
               ) : (
-                <div className="hidden lg:flex items-center gap-2"> {/* reduced gap-3 to gap-2 */}
+                <div className={`hidden lg:flex items-center ${isEditorPage ? 'gap-1.5' : 'gap-2'}`}>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => navigate('/login')}
-                    className="px-4 py-1.5 rounded-lg font-medium flex items-center gap-1.5 backdrop-blur-sm hover:shadow-lg transition-all text-sm" /* reduced px-5 to px-4, py-2.5 to py-1.5, gap-2 to gap-1.5, added text-sm */
-                    style={{ 
+                    className={`rounded-lg font-medium flex items-center backdrop-blur-sm hover:shadow-lg transition-all ${isEditorPage ? 'px-3 py-1 text-xs gap-1' : 'px-4 py-1.5 text-sm gap-1.5'
+                      }`}
+                    style={{
                       backgroundColor: 'rgba(34, 40, 49, 0.8)',
                       border: '1px solid rgba(255, 255, 255, 0.1)',
                       color: '#FFFFFF'
                     }}
                   >
-                    <LogIn size={16} /> {/* reduced size 18 to 16 */}
+                    <LogIn size={isEditorPage ? 12 : 16} />
                     <span>Login</span>
                   </motion.button>
-                  
+
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => navigate('/signup')}
-                    className="px-5 py-1.5 rounded-lg font-bold relative overflow-hidden group text-sm" /* reduced px-6 to px-5, py-2.5 to py-1.5 */
-                    style={{ 
+                    className={`rounded-lg font-bold relative overflow-hidden group ${isEditorPage ? 'px-4 py-1 text-xs' : 'px-5 py-1.5 text-sm'
+                      }`}
+                    style={{
                       background: 'linear-gradient(135deg, #00ADB5 0%, #61DAFB 100%)',
                       color: '#FFFFFF'
                     }}
                   >
-                    <span className="relative z-10 flex items-center gap-1.5"> {/* reduced gap-2 to gap-1.5 */}
-                      <Flame size={16} /> {/* reduced size 18 to 16 */}
+                    <span className={`relative z-10 flex items-center ${isEditorPage ? 'gap-1' : 'gap-1.5'}`}>
+                      <Flame size={isEditorPage ? 12 : 16} />
                       Get Started
                     </span>
                     <motion.div
@@ -435,54 +488,54 @@ const Navbar = () => {
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="lg:hidden w-8 h-8 rounded-lg flex items-center justify-center backdrop-blur-sm" /* reduced w-10 h-10 to w-8 h-8 */
-                style={{ 
+                className={`lg:hidden rounded-lg flex items-center justify-center backdrop-blur-sm ${isEditorPage ? 'w-6 h-6' : 'w-8 h-8'
+                  }`}
+                style={{
                   backgroundColor: 'rgba(34, 40, 49, 0.8)',
                   border: '1px solid rgba(255, 255, 255, 0.1)'
                 }}
               >
                 {isMenuOpen ? (
-                  <X size={18} className="text-white" /> /* reduced size 24 to 18 */
+                  <X size={isEditorPage ? 14 : 18} className="text-white" />
                 ) : (
-                  <Menu size={18} className="text-white" />
+                  <Menu size={isEditorPage ? 14 : 18} className="text-white" />
                 )}
               </motion.button>
             </div>
           </div>
-        </div>
+        </div >
 
-        {/* Mobile Menu */}
-        <AnimatePresence>
+        {/* Mobile Menu (unchanged logic but you may also reduce sizes if desired) */}
+        < AnimatePresence >
           {isMenuOpen && (
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               className="lg:hidden absolute top-full left-0 right-0 mt-1 mx-4 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl z-40"
-              style={{ 
+              style={{
                 backgroundColor: 'rgba(57, 62, 70, 0.98)',
                 border: '1px solid rgba(255, 255, 255, 0.1)'
               }}
             >
               {/* Mobile Navigation */}
-              <div className="py-1"> {/* reduced py-2 to py-1 */}
+              <div className="py-1">
                 {navItems.map((item) => (
                   <Link
                     key={item.path}
                     to={item.path}
                     onClick={() => setIsMenuOpen(false)}
-                    className={`flex items-center gap-3 px-5 py-3 mx-2 rounded-xl transition-all text-sm ${
-                      location.pathname === item.path
-                        ? 'bg-white/10 text-white'
-                        : 'text-gray-300 hover:bg-white/5 hover:text-white'
-                    }`} /* reduced px-6 to px-5, py-4 to py-3, gap-3 unchanged, added text-sm */
+                    className={`flex items-center gap-3 px-5 py-3 mx-2 rounded-xl transition-all text-sm ${location.pathname === item.path
+                      ? 'bg-white/10 text-white'
+                      : 'text-gray-300 hover:bg-white/5 hover:text-white'
+                      }`}
                   >
-                    <item.icon size={18} style={{ color: item.color }} /> {/* reduced size 20 to 18 */}
+                    <item.icon size={18} style={{ color: item.color }} />
                     <span className="font-medium">{item.label}</span>
                     {location.pathname === item.path && (
                       <motion.div
                         layoutId="mobile-indicator"
-                        className="ml-auto w-1.5 h-1.5 rounded-full" /* reduced w-2 h-2 to w-1.5 h-1.5 */
+                        className="ml-auto w-1.5 h-1.5 rounded-full"
                         style={{ backgroundColor: item.color }}
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
@@ -493,12 +546,12 @@ const Navbar = () => {
               </div>
 
               {/* Mobile Auth Buttons */}
-              <div className="p-5 border-t" style={{ borderColor: 'rgba(255,255,255,0.1)' }}> {/* reduced p-6 to p-5 */}
+              <div className="p-5 border-t" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
                 {user ? (
                   <div className="space-y-3">
-                    <div className="flex items-center gap-3 mb-3"> {/* reduced mb-4 to mb-3 */}
+                    <div className="flex items-center gap-3 mb-3">
                       <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-base"
-                        style={{ 
+                        style={{
                           background: 'linear-gradient(135deg, #00ADB5 0%, #61DAFB 100%)',
                           color: '#FFFFFF'
                         }}
@@ -510,9 +563,9 @@ const Navbar = () => {
                         <div className="text-xs text-gray-300">{userData.role}</div>
                       </div>
                     </div>
-                    
+
                     <button className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm"
-                      style={{ 
+                      style={{
                         backgroundColor: '#FF4081',
                         color: '#FFFFFF'
                       }}
@@ -522,14 +575,14 @@ const Navbar = () => {
                     </button>
                   </div>
                 ) : (
-                  <div className="space-y-2.5"> {/* reduced space-y-3 to space-y-2.5 */}
+                  <div className="space-y-2.5">
                     <button
                       onClick={() => {
                         navigate('/login');
                         setIsMenuOpen(false);
                       }}
                       className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm"
-                      style={{ 
+                      style={{
                         backgroundColor: 'rgba(34, 40, 49, 0.8)',
                         border: '1px solid rgba(255, 255, 255, 0.1)',
                         color: '#FFFFFF'
@@ -538,14 +591,14 @@ const Navbar = () => {
                       <LogIn size={16} />
                       <span>Login</span>
                     </button>
-                    
+
                     <button
                       onClick={() => {
                         navigate('/signup');
                         setIsMenuOpen(false);
                       }}
                       className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm"
-                      style={{ 
+                      style={{
                         background: 'linear-gradient(135deg, #00ADB5 0%, #61DAFB 100%)',
                         color: '#FFFFFF'
                       }}
@@ -557,12 +610,22 @@ const Navbar = () => {
                 )}
               </div>
             </motion.div>
-          )}
-        </AnimatePresence>
-      </nav>
+          )
+          }
+        </AnimatePresence >
+      </nav >
 
-      {/* Spacer for fixed navbar - adjusted to match new height */}
-      <div className="h-14" /> {/* was h-15, changed to h-14 (56px) to match compact navbar */}
+      {/* Spacer for fixed navbar - height changes based on page */}
+      <div
+        // className={isEditorPage ? "h-7" : "h-14"} 
+        className={`transition-all duration-500 bg-[#1b2b55] 
+          ${showNavbar
+            ? isEditorPage
+              ? "lg:h-14 sm:h-9 "
+              : "h-14"
+            : "h-0"
+          }`}
+      />  
     </>
   );
 };
