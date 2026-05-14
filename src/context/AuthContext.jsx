@@ -1,12 +1,13 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
-  signInWithPopup, 
-  signOut, 
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  signOut,
   onAuthStateChanged,
   updateProfile,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  GithubAuthProvider,
 } from 'firebase/auth';
 import { auth, googleProvider } from '../firebase/firebase';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
@@ -47,7 +48,7 @@ export const AuthProvider = ({ children }) => {
         try {
           const userDoc = await getDoc(doc(db, 'users', user.uid));
           const userData = userDoc.exists() ? userDoc.data() : {};
-          
+
           setUser({
             uid: user.uid,
             email: user.email,
@@ -79,10 +80,10 @@ export const AuthProvider = ({ children }) => {
     try {
       setActionLoading(true);
       setError('');
-      
+
       // 1. Create user in Firebase Authentication
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      
+
       // 2. Update profile with display name
       await updateProfile(userCredential.user, {
         displayName: displayName
@@ -117,7 +118,7 @@ export const AuthProvider = ({ children }) => {
       setActionLoading(true);
       setError('');
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      
+
       // Update last login time
       await setDoc(doc(db, 'users', userCredential.user.uid), {
         lastLogin: new Date().toISOString()
@@ -137,10 +138,10 @@ export const AuthProvider = ({ children }) => {
       setActionLoading(true);
       setError('');
       const result = await signInWithPopup(auth, googleProvider);
-      
+
       // Check if user exists in Firestore
       const userDoc = await getDoc(doc(db, 'users', result.user.uid));
-      
+
       if (!userDoc.exists()) {
         // Create new user document
         await setDoc(doc(db, 'users', result.user.uid), {
@@ -172,6 +173,48 @@ export const AuthProvider = ({ children }) => {
       throw error;
     }
   };
+
+  const githubProvider = new GithubAuthProvider();
+
+  const githubLogin = async () => {
+  try {
+    setActionLoading(true);
+    setError('');
+
+    const result = await signInWithPopup(auth, githubProvider);
+
+    const user = result.user;
+
+    // check Firestore user exists
+    const userDoc = await getDoc(doc(db, 'users', user.uid));
+
+    if (!userDoc.exists()) {
+      await setDoc(doc(db, 'users', user.uid), {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+        createdAt: new Date().toISOString(),
+        lastLogin: new Date().toISOString(),
+        technologies: [],
+        subscription: 'free',
+        points: 0,
+        role: 'user'
+      });
+    } else {
+      await setDoc(doc(db, 'users', user.uid), {
+        lastLogin: new Date().toISOString()
+      }, { merge: true });
+    }
+
+    setActionLoading(false);
+    return user;
+  } catch (error) {
+    setActionLoading(false);
+    setError(getErrorMessage(error.code));
+    throw error;
+  }
+};
 
   const logout = async () => {
     try {
@@ -228,6 +271,7 @@ export const AuthProvider = ({ children }) => {
     signup,
     login,
     loginWithGoogle,
+    githubLogin,
     logout,
     resetPassword,
     clearError

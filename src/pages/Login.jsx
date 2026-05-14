@@ -22,9 +22,10 @@ import {
   Rocket
 } from 'lucide-react';
 
+
 const Login = () => {
   const navigate = useNavigate();
-  const { login, loginWithGoogle, resetPassword, loading, error, clearError } = useAuth();
+  const { login, loginWithGoogle, githubLogin, resetPassword, loading, error, clearError } = useAuth();
   
   const [formData, setFormData] = useState({
     email: '',
@@ -64,6 +65,11 @@ const Login = () => {
       // Error is already handled by AuthContext
     }
   };
+  
+  const handleGithubLogin = async () => {
+  await githubLogin();
+  navigate('/dashboard');
+};
 
   const handleForgotPassword = () => {
     setActiveTab('forgot');
@@ -433,7 +439,7 @@ const Login = () => {
 
                       <motion.button
                         type="button"
-                        onClick={() => console.log('GitHub login')}
+                        onClick={handleGithubLogin}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         disabled={loading}
