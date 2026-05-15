@@ -1,11 +1,14 @@
-
-
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, X, Play, Clock, BookOpen, Code, Sparkles, Loader } from "lucide-react";
 
-const API_KEY = "AIzaSyDmeQc7z165tiV0ZOQz_2W5tkXZMLvR-Kc";
+// for dynamic video fetching form db
+import { getVideos } from "../api/videos.api";
+
+const API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
+
+
 
 const Coursespage = () => {
   const navigate = useNavigate();
@@ -17,13 +20,23 @@ const Coursespage = () => {
   const [loadingPlaylist, setLoadingPlaylist] = useState(false); // loading for modal
   const [searchTerm, setSearchTerm] = useState("");
 
-  const videos = [
-    { id: "W6NZfCO5SIk", title: "JavaScript Basics" },
-    { id: "ESnrn1kAD4E", title: "CSS Tutorial for Beginners" },
-    { id: "ajdRvxDWH4w", title: "JavaScript Full Course" },
-    { id: "HcOc7P5BMi4", title: "HTML Tutorial for Beginners" },
-    { id: "e7sAf4SbS_g", title: "Complete C++ Tutorial in One Shot" },
-  ];
+  // fetching video from db
+  const [videos, setVideos] = useState([]);
+  const [loadingVideos, setLoadingVideos] = useState(true);
+  useEffect(() => {
+    const fetchVideos = async () => {
+      try {
+        const data = await getVideos();
+        setVideos(data);
+      } catch (error) {
+        console.error("Error fetching videos:", error);
+      } finally {
+        setLoadingVideos(false);
+      }
+    };
+    fetchVideos();
+  }, []);
+
 
   const playlists = [
     { id: "html01", title: "HTML Complete Course", playlistId: "PLu71SKxNbfoDBNF5s-WH6aLbthSEIMhMI" },
@@ -36,9 +49,9 @@ const Coursespage = () => {
   // Memoized filters – updates instantly when search changes
   const filteredVideos = useMemo(() => {
     return videos.filter(video =>
-      video.title.toLowerCase().includes(searchTerm.toLowerCase())
+      video.videoTitle.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [searchTerm]);
+  }, [videos, searchTerm]);
 
   const filteredPlaylists = useMemo(() => {
     return playlists.filter(playlist =>
@@ -240,64 +253,88 @@ const Coursespage = () => {
         </motion.div>
 
         {/* One Shot Videos */}
-        <div className="mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-10 flex items-center justify-center gap-2">
-            <Sparkles className="text-[#00ADB5]" size={28} />
-            <span className="bg-linear-to-r from-[#00ADB5] to-[#61DAFB] bg-clip-text text-transparent">
-              One Shot Videos
-            </span>
-          </h2>
+        {loadingVideos ? (
+          <div className="col-span-full flex justify-center py-10">
+            <Loader className="animate-spin text-[#00ADB5]" size={40} />
+          </div>
+        ) : (
+          <div className="mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-center mb-10 flex items-center justify-center gap-2">
+              <Sparkles className="text-[#00ADB5]" size={28} />
+              <span className="bg-linear-to-r from-[#00ADB5] to-[#61DAFB] bg-clip-text text-transparent">
+                One Shot Videos
+              </span>
+            </h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {filteredVideos.length > 0 ? (
-              filteredVideos.map((video) => (
-                <div
-                  key={video.id}
-                  onClick={() => navigate(`/editor/${video.id}`)}
-                  className="group cursor-pointer rounded-xl overflow-hidden transition-all duration-300 hover:scale-105 hover:-translate-y-2"
-                  style={{
-                    backgroundColor: "#393E46",
-                    border: "1px solid rgba(255,255,255,0.1)",
-                    boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
-                  }}
-                >
-                  <div className="relative aspect-video overflow-hidden">
-                    <img
-                      src={`https://img.youtube.com/vi/${video.id}/0.jpg`}
-                      alt={video.title}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
-                    <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <div
-                        className="w-14 h-14 rounded-full flex items-center justify-center"
-                        style={{ backgroundColor: "#00ADB5" }}
-                      >
-                        <Play className="text-white" size={24} fill="white" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+
+              {videos.length > 0 ? (
+                [...videos]
+                  .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                  .map((video, index) => (
+                    <div
+                      key={video.videoId || index}
+                      onClick={() => navigate(`/editor/${video.videoId}`)}
+                      className="group cursor-pointer rounded-xl overflow-hidden transition-all duration-300 hover:scale-105 hover:-translate-y-2"
+                      style={{
+                        backgroundColor: "#393E46",
+                        border: "1px solid rgba(255,255,255,0.1)",
+                        boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
+                      }}
+                    >
+                      <div className="relative aspect-video overflow-hidden">
+                        <div className="relative ">
+
+                                <img
+                                    src={`https://img.youtube.com/vi/${video.videoId}/maxresdefault.jpg`}
+                                    alt={video.videoTitle}
+                                    className="w-full h-56 object-cover"
+                                />
+
+                                <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent" />
+
+                                <div className="absolute bottom-8 left-4">
+
+                                    <span className="bg-cyan-500 text-white text-xs px-3 py-1 rounded-full font-semibold">
+                                        {video.course}
+                                    </span>
+
+                                </div>
+
+                            </div>
+                        
+                        {/* <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" /> */}
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          <div
+                            className="w-14 h-14 rounded-full flex items-center justify-center"
+                            style={{ backgroundColor: "#00ADB5" }}
+                          >
+                            <Play className="text-white" size={24} fill="white" />
+                          </div>
+                        </div>
+                        <span
+                          className="absolute bottom-2 right-2 px-2 py-1 rounded text-xs font-medium flex items-center gap-1"
+                          style={{ backgroundColor: "#222831", color: "#EEEEEE" }}
+                        >
+                          <Clock size={12} />
+                          {video.duration}
+                        </span>
+                      </div>
+                      <div className="p-4">
+                        <h3 className="font-medium text-sm line-clamp-2" style={{ color: "#EEEEEE" }}>
+                          {video.videoTitle}
+                        </h3>
                       </div>
                     </div>
-                    <span
-                      className="absolute bottom-2 right-2 px-2 py-1 rounded text-xs font-medium flex items-center gap-1"
-                      style={{ backgroundColor: "#222831", color: "#EEEEEE" }}
-                    >
-                      <Clock size={12} />
-                      ~2 hrs
-                    </span>
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-medium text-sm line-clamp-2" style={{ color: "#EEEEEE" }}>
-                      {video.title}
-                    </h3>
-                  </div>
+                  ))
+              ) : (
+                <div className="col-span-full text-center py-12 text-gray-400">
+                  No videos found for "{searchTerm}"
                 </div>
-              ))
-            ) : (
-              <div className="col-span-full text-center py-12 text-gray-400">
-                No videos found for "{searchTerm}"
-              </div>
-            )}
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Playlists */}
         <div className="mb-16">

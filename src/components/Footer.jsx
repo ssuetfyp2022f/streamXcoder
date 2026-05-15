@@ -78,7 +78,7 @@
 //                              radial-gradient(circle at 80% 20%, #393E46 0%, transparent 50%)`
 //           }}
 //         />
-        
+
 //         {/* Floating elements */}
 //         {[...Array(5)].map((_, i) => (
 //           <motion.div
@@ -133,7 +133,7 @@
 //                       <Zap size={16} className="text-yellow-400" />
 //                     </motion.div>
 //                   </motion.div>
-                  
+
 //                   <div>
 //                     <h2 className="text-3xl font-bold bg-linear-to-r from-[#00ADB5] via-[#61DAFB] to-[#00ADB5] bg-clip-text text-transparent">
 //                       StreamXCoder
@@ -176,7 +176,7 @@
 //                         }}
 //                       >
 //                         <social.icon size={20} className="text-white" />
-                        
+
 //                         {/* Hover tooltip */}
 //                         {/* <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 px-2 py-1 rounded text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity"
 //                           style={{ 
@@ -230,12 +230,12 @@
 //                     <Rocket size={18} />
 //                     Stay Updated
 //                   </h3>
-                  
+
 //                   <form onSubmit={handleSubscribe} className="space-y-4">
 //                     <p className="text-gray-300 text-sm">
 //                       Get the latest tutorials, updates, and coding tips directly in your inbox.
 //                     </p>
-                    
+
 //                     <div className="relative">
 //                       <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
 //                       <input
@@ -246,7 +246,7 @@
 //                         className="w-full pl-12 pr-4 py-3 rounded-xl bg-white/5 text-white placeholder-gray-400 outline-none border border-white/10 focus:border-[#00ADB5] transition-colors"
 //                       />
 //                     </div>
-                    
+
 //                     <motion.button
 //                       whileHover={{ scale: 1.02 }}
 //                       whileTap={{ scale: 0.98 }}
@@ -260,7 +260,7 @@
 //                       <Zap size={18} />
 //                       Subscribe Now
 //                     </motion.button>
-                    
+
 //                     <p className="text-xs text-gray-400 text-center">
 //                       No spam. Unsubscribe anytime.
 //                     </p>
@@ -409,7 +409,7 @@
 //             <span>Start Coding Free</span>
 //             <Zap size={16} />
 //           </motion.button>
-          
+
 //           {/* Glow effect */}
 //           <div className="absolute inset-0 rounded-xl blur-xl opacity-50 -z-10"
 //             style={{ backgroundColor: '#00ADB5' }}
@@ -426,12 +426,12 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom'; // Add useLocation
 import { motion } from 'framer-motion';
-import { 
-  Code, 
-  Github, 
-  Twitter, 
-  Linkedin, 
-  Mail, 
+import {
+  Code,
+  Github,
+  Twitter,
+  Linkedin,
+  Mail,
   ExternalLink,
   Heart,
   Zap,
@@ -456,6 +456,8 @@ const Footer = () => {
   const location = useLocation(); // Get current route
   // Check if current page is editor
   const isEditorPage = location.pathname.startsWith('/editor');
+  const isAdminPage = location.pathname.startsWith('/admin');
+  if (isAdminPage) return null;
 
 
   const handleSubscribe = (e) => {
@@ -508,13 +510,13 @@ const Footer = () => {
                              radial-gradient(circle at 80% 20%, #393E46 0%, transparent 50%)`
           }}
         />
-        
+
         {/* Floating elements */}
         {[...Array(5)].map((_, i) => (
           <motion.div
             key={i}
             className="absolute rounded-full opacity-10"
-            style={{ 
+            style={{
               backgroundColor: '#00ADB5',
               width: 40 + i * 20,
               height: 40 + i * 20,
@@ -538,127 +540,127 @@ const Footer = () => {
       <div className="relative z-10">
         {/* Top Section */}
         {isHomePage && (
-        <div className="py-16" style={{ backgroundColor: '#393E46' }}>
-          <div className="container mx-auto px-4">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-12">
-              {/* Brand Section */}
-              <div className="space-y-6">
-                <div className="flex items-center gap-4">
-                  <motion.div
-                    whileHover={{ rotate: 360 }}
-                    transition={{ duration: 0.5 }}
-                    className="relative"
-                  >
-                    <div className="w-16 h-16 rounded-xl flex items-center justify-center"
-                      style={{ 
-                        background: 'linear-gradient(135deg, #00ADB5 0%, #61DAFB 100%)',
-                      }}
-                    >
-                      <Code className="text-white" size={28} />
-                    </div>
+          <div className="py-16" style={{ backgroundColor: '#393E46' }}>
+            <div className="container mx-auto px-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-12">
+                {/* Brand Section */}
+                <div className="space-y-6">
+                  <div className="flex items-center gap-4">
                     <motion.div
-                      className="absolute -top-2 -right-2"
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+                      whileHover={{ rotate: 360 }}
+                      transition={{ duration: 0.5 }}
+                      className="relative"
                     >
-                      <Zap size={16} className="text-yellow-400" />
-                    </motion.div>
-                  </motion.div>
-                  
-                  <div>
-                    <h2 className="text-3xl font-bold bg-linear-to-r from-[#00ADB5] via-[#61DAFB] to-[#00ADB5] bg-clip-text text-transparent">
-                      StreamXCoder
-                    </h2>
-                    <p className="text-gray-300 mt-1">Learn. Code. Build.</p>
-                  </div>
-                </div>
-
-                <p className="text-gray-300 leading-relaxed max-w-lg">
-                  The ultimate platform for interactive coding tutorials. Watch videos, 
-                  write code in real-time, and join a community of passionate developers 
-                  transforming their skills.
-                </p>
-              </div>
-
-              {/* Newsletter & Quick Links */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* Quick Links */}
-                <div>
-                  <h3 className="text-xl font-bold mb-6 text-white flex items-center gap-2">
-                    <ExternalLink size={18} />
-                    Quick Links
-                  </h3>
-                  <div className="grid grid-cols-2 gap-3">
-                    {quickLinks.map((link, index) => (
-                      <motion.div
-                        key={link.label}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.05 }}
+                      <div className="w-16 h-16 rounded-xl flex items-center justify-center"
+                        style={{
+                          background: 'linear-gradient(135deg, #00ADB5 0%, #61DAFB 100%)',
+                        }}
                       >
-                        <Link
-                          to={link.path}
-                          className="flex items-center gap-2 py-2 text-gray-300 hover:text-white group transition-all"
-                        >
-                          <div className="w-1 h-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                            style={{ backgroundColor: '#00ADB5' }}
-                          />
-                          <span className="group-hover:translate-x-1 transition-transform">
-                            {link.label}
-                          </span>
-                        </Link>
+                        <Code className="text-white" size={28} />
+                      </div>
+                      <motion.div
+                        className="absolute -top-2 -right-2"
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+                      >
+                        <Zap size={16} className="text-yellow-400" />
                       </motion.div>
-                    ))}
+                    </motion.div>
+
+                    <div>
+                      <h2 className="text-3xl font-bold bg-linear-to-r from-[#00ADB5] via-[#61DAFB] to-[#00ADB5] bg-clip-text text-transparent">
+                        StreamXCoder
+                      </h2>
+                      <p className="text-gray-300 mt-1">Learn. Code. Build.</p>
+                    </div>
                   </div>
+
+                  <p className="text-gray-300 leading-relaxed max-w-lg">
+                    The ultimate platform for interactive coding tutorials. Watch videos,
+                    write code in real-time, and join a community of passionate developers
+                    transforming their skills.
+                  </p>
                 </div>
 
-                {/* Newsletter */}
-                <div>
-                  <h3 className="text-xl font-bold mb-6 text-white flex items-center gap-2">
-                    <Rocket size={18} />
-                    Stay Updated
-                  </h3>
-                  
-                  <form onSubmit={handleSubscribe} className="space-y-4">
-                    <p className="text-gray-300 text-sm">
-                      Get the latest tutorials, updates, and coding tips directly in your inbox.
-                    </p>
-                    
-                    <div className="relative">
-                      <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                      <input
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="Your email address"
-                        className="w-full pl-12 pr-4 py-3 rounded-xl bg-white/5 text-white placeholder-gray-400 outline-none border border-white/10 focus:border-[#00ADB5] transition-colors"
-                      />
+                {/* Newsletter & Quick Links */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {/* Quick Links */}
+                  <div>
+                    <h3 className="text-xl font-bold mb-6 text-white flex items-center gap-2">
+                      <ExternalLink size={18} />
+                      Quick Links
+                    </h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      {quickLinks.map((link, index) => (
+                        <motion.div
+                          key={link.label}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.05 }}
+                        >
+                          <Link
+                            to={link.path}
+                            className="flex items-center gap-2 py-2 text-gray-300 hover:text-white group transition-all"
+                          >
+                            <div className="w-1 h-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                              style={{ backgroundColor: '#00ADB5' }}
+                            />
+                            <span className="group-hover:translate-x-1 transition-transform">
+                              {link.label}
+                            </span>
+                          </Link>
+                        </motion.div>
+                      ))}
                     </div>
-                    
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      type="submit"
-                      className="w-full py-3.5 rounded-xl font-bold flex items-center justify-center gap-2"
-                      style={{ 
-                        background: 'linear-gradient(135deg, #00ADB5 0%, #393E46 100%)',
-                        color: '#FFFFFF'
-                      }}
-                    >
-                      <Zap size={18} />
-                      Subscribe Now
-                    </motion.button>
-                    
-                    <p className="text-xs text-gray-400 text-center">
-                      No spam. Unsubscribe anytime.
-                    </p>
-                  </form>
+                  </div>
+
+                  {/* Newsletter */}
+                  <div>
+                    <h3 className="text-xl font-bold mb-6 text-white flex items-center gap-2">
+                      <Rocket size={18} />
+                      Stay Updated
+                    </h3>
+
+                    <form onSubmit={handleSubscribe} className="space-y-4">
+                      <p className="text-gray-300 text-sm">
+                        Get the latest tutorials, updates, and coding tips directly in your inbox.
+                      </p>
+
+                      <div className="relative">
+                        <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                        <input
+                          type="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="Your email address"
+                          className="w-full pl-12 pr-4 py-3 rounded-xl bg-white/5 text-white placeholder-gray-400 outline-none border border-white/10 focus:border-[#00ADB5] transition-colors"
+                        />
+                      </div>
+
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        type="submit"
+                        className="w-full py-3.5 rounded-xl font-bold flex items-center justify-center gap-2"
+                        style={{
+                          background: 'linear-gradient(135deg, #00ADB5 0%, #393E46 100%)',
+                          color: '#FFFFFF'
+                        }}
+                      >
+                        <Zap size={18} />
+                        Subscribe Now
+                      </motion.button>
+
+                      <p className="text-xs text-gray-400 text-center">
+                        No spam. Unsubscribe anytime.
+                      </p>
+                    </form>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-)}
+        )}
         {/* Bottom Bar */}
         <div style={{ backgroundColor: '#222831' }}>
           <div className="container mx-auto px-4 py-6">
@@ -702,7 +704,7 @@ const Footer = () => {
                 whileTap={{ scale: 0.9 }}
                 onClick={scrollToTop}
                 className="w-12 h-12 rounded-full flex items-center justify-center group"
-                style={{ 
+                style={{
                   background: 'linear-gradient(135deg, #00ADB5 0%, #393E46 100%)'
                 }}
               >
@@ -752,7 +754,7 @@ const Footer = () => {
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               className="px-6 py-3 rounded-xl font-bold shadow-2xl flex items-center gap-2"
-              style={{ 
+              style={{
                 background: 'linear-gradient(135deg, #00ADB5 0%, #61DAFB 100%)',
                 color: '#FFFFFF'
               }}
@@ -762,7 +764,7 @@ const Footer = () => {
               <span>Start Coding Free</span>
               <Zap size={16} />
             </motion.button>
-            
+
             {/* Glow effect */}
             <div className="absolute inset-0 rounded-xl blur-xl opacity-50 -z-10"
               style={{ backgroundColor: '#00ADB5' }}

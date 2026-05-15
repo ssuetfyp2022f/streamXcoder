@@ -21,7 +21,7 @@ import {
   Brain,
   Rocket
 } from 'lucide-react';
-
+import { form } from 'framer-motion/client';
 
 const Login = () => {
   const navigate = useNavigate();

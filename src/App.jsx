@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import "./App.css"
+import Videos from "./pages/Videos";
+import Admin from "./pages/Admin";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -11,7 +13,7 @@ import Courespage from "./pages/Coursespage";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Editor from "./pages/Editor";
-import Loader from "./components/Loader";
+// import Loader from "./components/Loader";
 
 const Layout = ({ children }) => {
   const location = useLocation();
@@ -46,12 +48,24 @@ function App() {
   return (
     <>
       {/* Show Loader */}
-      {loading && <Loader duration={3000} message="Code Along With Videos" />}
+      {/* {loading && <Loader duration={3000} message="Code Along With Videos" />} */}
 
       {/* Main App Content */}
       <AuthProvider>
         <Router>
           <Routes>
+            <Route path="/admin" element={
+              <Layout>
+                <Admin />
+              </Layout>
+            } />
+            
+            <Route path="/admin/videos" element={
+              <Layout>
+                <Videos />
+              </Layout>
+            } />
+
             <Route path="/" element={
               <Layout>
                 <Home />
