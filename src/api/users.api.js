@@ -1,14 +1,11 @@
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../firebase/firebase";
+import { useState } from "react";
 
-// create user
-export const addUser = async () => {
-
-}
 
 // update user
 
-// retrieve user
+// get user
 export const getUsers = async () => {
   const querySnapshot = await getDocs(collection(db, "users"));
 
@@ -21,19 +18,26 @@ export const getUsers = async () => {
   return usersData;
 };
 
-// for admin role
+
+// get user by email
 export const getUserByEmail = async (email) => {
-  const q = query(collection(db, "users"), where("email", "==", email));
+  const q = query(
+    collection(db, "users"),
+    where("email", "==", email)
+  );
+
   const querySnapshot = await getDocs(q);
 
   if (querySnapshot.empty) return null;
 
   const doc = querySnapshot.docs[0];
 
-  return {
+  const userData = {
     id: doc.id,
     ...doc.data(),
-  };
+  }
+  // console.log(userData.role);
+  return userData.role;
 };
 
 // delete user

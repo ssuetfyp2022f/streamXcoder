@@ -2,41 +2,25 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
-import { 
-  LogIn, 
-  Mail, 
-  Lock, 
-  Eye, 
-  EyeOff,
-  Fingerprint,
-  Zap,
-  Code,
-  Sparkles,
-  AlertCircle,
-  Chrome,
-  Github,
-  Terminal,
-  ArrowRight,
-  Shield,
-  Brain,
-  Rocket
-} from 'lucide-react';
+import { LogIn, Mail, Lock, Eye, EyeOff, Fingerprint, Zap, Code, Sparkles, AlertCircle, Chrome, Github, Terminal, ArrowRight, Shield, Brain, Rocket } from 'lucide-react';
 import { form } from 'framer-motion/client';
+import { getUsers, getUserByEmail } from '../api/users.api';
 
 const Login = () => {
   const navigate = useNavigate();
   const { login, loginWithGoogle, githubLogin, resetPassword, loading, error, clearError } = useAuth();
-  
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     rememberMe: false
   });
-  
+
   const [showPassword, setShowPassword] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [activeTab, setActiveTab] = useState('login');
   const [resetEmail, setResetEmail] = useState('');
+
 
   const handleChange = (e) => {
     clearError();
@@ -49,11 +33,27 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
+      
       await login(formData.email, formData.password);
-      navigate('/dashboard');
+
+      // Get user data for checking role
+      const userRole = await getUserByEmail(formData.email);
+
+      console.log(userRole);
+
+      // Check role directly
+      if (userRole === "admin") {
+        console.log("admin");
+        navigate("/admin");
+      } else {
+        console.log("not admin");
+        navigate("/dashboard");
+      }
+
     } catch (err) {
-      // Error is already handled by AuthContext
+      console.log(err);
     }
   };
 
@@ -65,11 +65,11 @@ const Login = () => {
       // Error is already handled by AuthContext
     }
   };
-  
+
   const handleGithubLogin = async () => {
-  await githubLogin();
-  navigate('/dashboard');
-};
+    await githubLogin();
+    navigate('/dashboard');
+  };
 
   const handleForgotPassword = () => {
     setActiveTab('forgot');
@@ -103,13 +103,13 @@ const Login = () => {
             backgroundSize: '50px 50px'
           }}
         />
-        
+
         {/* Floating Elements */}
         {[...Array(6)].map((_, i) => (
           <motion.div
             key={i}
             className="absolute rounded-full opacity-10"
-            style={{ 
+            style={{
               backgroundColor: i % 2 === 0 ? '#00ADB5' : '#61DAFB',
               width: 100 + i * 40,
               height: 100 + i * 40,
@@ -142,26 +142,26 @@ const Login = () => {
             >
               <div>
                 <motion.div
-                  animate={{ 
+                  animate={{
                     rotate: 360,
                     scale: [1, 1.1, 1]
                   }}
-                  transition={{ 
+                  transition={{
                     rotate: { duration: 20, repeat: Infinity, ease: "linear" },
                     scale: { duration: 2, repeat: Infinity }
                   }}
                   className="w-24 h-24 rounded-2xl flex items-center justify-center mb-6"
-                  style={{ 
+                  style={{
                     background: 'linear-gradient(135deg, #00ADB5 0%, #61DAFB 100%)',
                     boxShadow: '0 20px 60px rgba(0, 173, 181, 0.4)'
                   }}
                 >
                   <Code className="text-white" size={40} />
                 </motion.div>
-                
+
                 <h1 className="text-5xl font-bold mb-4 text-white">
                   Welcome Back to <br />
-                  <span className="bg-gradient-to-r from-[#00ADB5] via-[#61DAFB] to-[#00ADB5] bg-clip-text text-transparent">
+                  <span className="bg-linear-to-r from-[#00ADB5] via-[#61DAFB] to-[#00ADB5] bg-clip-text text-transparent">
                     StreamXCoder
                   </span>
                 </h1>
@@ -213,7 +213,7 @@ const Login = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.6 }}
                 className="p-6 rounded-2xl backdrop-blur-sm"
-                style={{ 
+                style={{
                   backgroundColor: 'rgba(57, 62, 70, 0.4)',
                   border: '1px solid rgba(255, 255, 255, 0.1)'
                 }}
@@ -239,7 +239,7 @@ const Login = () => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8 }}
               className="backdrop-blur-xl rounded-3xl p-8"
-              style={{ 
+              style={{
                 backgroundColor: 'rgba(57, 62, 70, 0.6)',
                 border: '1px solid rgba(255, 255, 255, 0.1)',
                 boxShadow: '0 30px 60px rgba(0, 0, 0, 0.3)'
@@ -249,9 +249,8 @@ const Login = () => {
               <div className="flex border-b border-white/10 mb-8">
                 <button
                   onClick={() => setActiveTab('login')}
-                  className={`flex-1 py-4 font-bold text-lg relative ${
-                    activeTab === 'login' ? 'text-white' : 'text-gray-400'
-                  }`}
+                  className={`flex-1 py-4 font-bold text-lg relative ${activeTab === 'login' ? 'text-white' : 'text-gray-400'
+                    }`}
                 >
                   <span className="flex items-center justify-center gap-2">
                     <Fingerprint size={20} />
@@ -265,12 +264,11 @@ const Login = () => {
                     />
                   )}
                 </button>
-                
+
                 <button
                   onClick={() => setActiveTab('forgot')}
-                  className={`flex-1 py-4 font-bold text-lg relative ${
-                    activeTab === 'forgot' ? 'text-white' : 'text-gray-400'
-                  }`}
+                  className={`flex-1 py-4 font-bold text-lg relative ${activeTab === 'forgot' ? 'text-white' : 'text-gray-400'
+                    }`}
                 >
                   <span className="flex items-center justify-center gap-2">
                     <Shield size={20} />
@@ -387,7 +385,7 @@ const Login = () => {
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         className="w-full py-4 rounded-xl font-bold flex items-center justify-center gap-2 relative overflow-hidden group mt-6"
-                        style={{ 
+                        style={{
                           background: 'linear-gradient(135deg, #00ADB5 0%, #61DAFB 100%)',
                           color: '#FFFFFF'
                         }}
@@ -444,7 +442,7 @@ const Login = () => {
                         whileTap={{ scale: 0.98 }}
                         disabled={loading}
                         className="py-3 rounded-xl font-medium flex items-center justify-center gap-2"
-                        style={{ 
+                        style={{
                           backgroundColor: 'rgba(255, 255, 255, 0.1)',
                           border: '1px solid rgba(255, 255, 255, 0.2)',
                           color: '#FFFFFF'
@@ -476,7 +474,7 @@ const Login = () => {
                   >
                     <div className="text-center mb-6">
                       <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
-                        style={{ 
+                        style={{
                           backgroundColor: 'rgba(0, 173, 181, 0.1)',
                           border: '2px solid rgba(0, 173, 181, 0.3)'
                         }}
@@ -519,14 +517,14 @@ const Login = () => {
                       >
                         Back to Login
                       </motion.button>
-                      
+
                       <motion.button
                         type="button"
                         onClick={handleResetPassword}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         className="flex-1 py-3 rounded-xl font-bold flex items-center justify-center gap-2 relative overflow-hidden group"
-                        style={{ 
+                        style={{
                           background: 'linear-gradient(135deg, #00ADB5 0%, #61DAFB 100%)',
                           color: '#FFFFFF'
                         }}
@@ -566,7 +564,7 @@ const Login = () => {
             whileTap={{ scale: 0.9 }}
             onClick={() => navigate('/signup')}
             className="px-6 py-3 rounded-xl font-bold shadow-2xl flex items-center gap-2"
-            style={{ 
+            style={{
               background: 'linear-gradient(135deg, #FF6B35 0%, #FF8E53 100%)',
               color: '#FFFFFF'
             }}
@@ -575,7 +573,7 @@ const Login = () => {
             <span>Start Free Trial</span>
             <Rocket size={16} />
           </motion.button>
-          
+
           {/* Glow effect */}
           <div className="absolute inset-0 rounded-xl blur-xl opacity-50 -z-10"
             style={{ backgroundColor: '#FF6B35' }}

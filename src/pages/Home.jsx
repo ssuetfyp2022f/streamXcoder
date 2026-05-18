@@ -36,7 +36,7 @@ const TypewriterText = () => {
 	}, []);
 
 	return (
-		<span className="text-[#00ADB5] inline-block min-w-[200px]">
+		<span className="text-[#00ADB5] inline-block min-w-50">
 			{texts[textIndex]}
 			<span className="animate-pulse">|</span>
 		</span>
@@ -562,7 +562,7 @@ const Home = () => {
 										}}
 									>
 										<div
-											className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0"
+											className="w-12 h-12 rounded-lg flex items-center justify-center shrink-0"
 											style={{ backgroundColor: `${feature.color}20` }}
 										>
 											<feature.icon
@@ -740,7 +740,7 @@ function LiveCoding() {
 										className="group-hover:translate-x-2 transition-transform"
 									/>
 								</span>
-								<div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+								<div className="absolute inset-0 bg-linear-to-r from-transparent via-white/20 to-transparent -translate-x-fullroup-hover:translate-x-[100%] transition-transform duration-1000" />
 							</motion.button>
 
 							<motion.button

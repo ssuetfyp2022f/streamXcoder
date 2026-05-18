@@ -205,7 +205,7 @@ const Signup = () => {
             <Rocket className="text-white" size={40} />
           </motion.div>
           
-          <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-[#00ADB5] via-[#61DAFB] to-[#00ADB5] bg-clip-text text-transparent">
+          <h1 className="text-5xl font-bold mb-4 bg-linear-to-r from-[#00ADB5] via-[#61DAFB] to-[#00ADB5] bg-clip-text text-transparent">
             Start Your Coding Journey
           </h1>
           <p className="text-gray-400 text-lg max-w-2xl mx-auto">
@@ -668,7 +668,7 @@ const Signup = () => {
                   }}
                 >
                   <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
                       style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
                     >
                       {benefit.icon}

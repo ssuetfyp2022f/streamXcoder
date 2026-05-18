@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { getVideos, addVideos, updateVideos, deleteVideos, } from "../api/videos.api";
+import { getUsers, getUserByEmail } from "../api/users.api";
 
 export default function Videos() {
 
-    const [videos, setVideos] = useState([]);
-
     const [isOpen, setIsOpen] = useState(false);
-
+    const [user, setUser] = useState('');
+    const [videos, setVideos] = useState([]);
     const [editingId, setEditingId] = useState(null);
-
     const [loading, setLoading] = useState(false);
 
     // DETAILS MODAL
@@ -34,6 +33,34 @@ export default function Videos() {
         course: "",
         uploadedBy: "",
     });
+
+    // ---------------- User ----------------
+    // const fetchUser = async () => {
+
+    //     try {
+
+    //         const data = await getUsers();
+
+    //         // setUser(data || []);
+
+    //         data.map((user, index) => {
+    //             setUser(user.displayName)
+    //         })
+
+    //     } catch (error) {
+
+    //         console.error(error);
+    //     }
+    //     return user;
+    // };
+
+    // useEffect(() => {
+
+    //     fetchUser();
+
+    // }, []);
+
+
 
     // ---------------- FETCH ----------------
     const fetchVideos = async () => {
@@ -222,7 +249,7 @@ export default function Videos() {
                 duration: form.duration,
                 spokenLanguage: form.spokenLanguage,
                 course: form.course,
-                uploadedBy: form.uploadedBy,
+                uploadedBy: user,
                 createdAt: editingId
                     ? videos.find(v => v.id === editingId)?.createdAt
                     : new Date().toISOString(),
@@ -277,7 +304,7 @@ export default function Videos() {
             duration: v.duration || "",
             spokenLanguage: v.spokenLanguage || "",
             course: v.course || "",
-            uploadedBy: v.uploadedBy || "",
+            // uploadedBy: v.uploadedBy || "",
         });
 
         setEditingId(v.id);
@@ -294,7 +321,7 @@ export default function Videos() {
 
                 <div>
 
-                    <h1 className="text-4xl font-black bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
+                    <h1 className="text-4xl font-black bg-linear-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
                         Video Management
                     </h1>
 
@@ -306,7 +333,7 @@ export default function Videos() {
 
                 <button
                     onClick={() => setIsOpen(true)}
-                    className="bg-gradient-to-r from-cyan-500 to-purple-600 px-6 py-3 rounded-xl font-semibold shadow-lg shadow-cyan-500/20 hover:scale-105 transition"
+                    className="bg-linear-to-r from-cyan-500 to-purple-600 px-6 py-3 rounded-xl font-semibold shadow-lg shadow-cyan-500/20 hover:scale-105 transition"
                 >
                     + Add New Video
                 </button>
@@ -624,10 +651,10 @@ export default function Videos() {
                             />
 
                             <input
+                                disabled
                                 type="text"
                                 name="uploadedBy"
-                                placeholder="Uploaded By"
-                                value={form.uploadedBy}
+                                value={user}
                                 onChange={handleChange}
                                 className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none"
                             />
@@ -653,7 +680,7 @@ export default function Videos() {
                             <button
                                 onClick={handleSubmit}
                                 disabled={loading}
-                                className="bg-gradient-to-r from-cyan-500 to-purple-600 px-6 py-2 rounded-xl font-semibold"
+                                className="bg-linear-to-r from-cyan-500 to-purple-600 px-6 py-2 rounded-xl font-semibold"
                             >
 
                                 {loading
@@ -681,11 +708,11 @@ export default function Videos() {
 
                         <div
                             key={v.id}
-                            className="group bg-white/5 border border-white/10 rounded-3xl overflow-hidden hover:border-cyan-500/30 transition hover:shadow-2xl hover:shadow-cyan-500/10"
+                            className="group bg-white/5 border border-white/10 rounded-3xl overflow-hidden hover:border-cyan-500/30 transition hover:shadow-2xl hover:shadow-cyan-500/10 flex flex-col h-full"
                         >
 
                             {/* THUMBNAIL */}
-                            <div className="relative ">
+                            <div className="relative">
 
                                 <img
                                     src={`https://img.youtube.com/vi/${v.videoId}/maxresdefault.jpg`}
@@ -693,7 +720,7 @@ export default function Videos() {
                                     className="w-full h-56 object-cover"
                                 />
 
-                                <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent" />
+                                <div className="absolute inset-0 bg-linear-to-t from-black to-transparent" />
 
                                 <div className="absolute bottom-4 left-4">
 
@@ -706,7 +733,7 @@ export default function Videos() {
                             </div>
 
                             {/* CONTENT */}
-                            <div className="p-5">
+                            <div className="p-5 flex flex-col flex-1">
 
                                 <p className="text-xs text-gray-400 mb-2">
                                     #{index + 1}
@@ -743,7 +770,7 @@ export default function Videos() {
                                 </p>
 
                                 {/* BUTTONS */}
-                                <div className="flex gap-3">
+                                <div className="flex gap-3 mt-auto">
 
                                     <a
                                         href={v.url}

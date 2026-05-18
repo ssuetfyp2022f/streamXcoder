@@ -13,6 +13,7 @@ import Courespage from "./pages/Coursespage";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Editor from "./pages/Editor";
+import Users from "./pages/Users";
 // import Loader from "./components/Loader";
 
 const Layout = ({ children }) => {
@@ -63,6 +64,12 @@ function App() {
             <Route path="/admin/videos" element={
               <Layout>
                 <Videos />
+              </Layout>
+            } />
+
+            <Route path="/admin/users" element={
+              <Layout>
+                <Users />
               </Layout>
             } />
 
