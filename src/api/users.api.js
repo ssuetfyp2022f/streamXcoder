@@ -37,7 +37,7 @@ export const getUserByEmail = async (email) => {
     ...doc.data(),
   }
   // console.log(userData.role);
-  return userData.role;
+  return userData;
 };
 
 // delete user

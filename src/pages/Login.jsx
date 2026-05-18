@@ -39,12 +39,13 @@ const Login = () => {
       await login(formData.email, formData.password);
 
       // Get user data for checking role
-      const userRole = await getUserByEmail(formData.email);
+      const userData = await getUserByEmail(formData.email);
 
-      console.log(userRole);
+      console.log(userData.displayName);
+      console.log(userData.role);
 
       // Check role directly
-      if (userRole === "admin") {
+      if (userData.role === "admin") {
         console.log("admin");
         navigate("/admin");
       } else {

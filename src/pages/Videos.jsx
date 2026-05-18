@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { getVideos, addVideos, updateVideos, deleteVideos, } from "../api/videos.api";
-import { getUsers, getUserByEmail } from "../api/users.api";
+// import { getUsers, getUserByEmail } from "../api/users.api";
+import { getAuth } from "firebase/auth";
 
 export default function Videos() {
 
@@ -35,30 +36,29 @@ export default function Videos() {
     });
 
     // ---------------- User ----------------
-    // const fetchUser = async () => {
+    const fetchUser = async () => {
 
-    //     try {
+        try {
 
-    //         const data = await getUsers();
+            const auth = getAuth();
+            const currentUser = auth.currentUser;
 
-    //         // setUser(data || []);
+            // console.log(currentUser.displayName);
 
-    //         data.map((user, index) => {
-    //             setUser(user.displayName)
-    //         })
+            setUser(currentUser.displayName);
 
-    //     } catch (error) {
+        } catch (error) {
 
-    //         console.error(error);
-    //     }
-    //     return user;
-    // };
+            console.error(error);
+        }
+        return user;
+    };
 
-    // useEffect(() => {
+    useEffect(() => {
 
-    //     fetchUser();
+        fetchUser();
 
-    // }, []);
+    }, []);
 
 
 
@@ -239,6 +239,20 @@ export default function Videos() {
     // ---------------- SUBMIT ----------------
     const handleSubmit = async () => {
 
+        if (
+            !form.url.trim() ||
+            !form.videoTitle.trim() ||
+            !form.channel.trim() ||
+            !form.duration.trim() ||
+            !form.spokenLanguage.trim() ||
+            !form.course.trim()
+        ) {
+
+            alert("All fields are required!");
+
+            return;
+        }
+
         try {
 
             const payload = {
@@ -297,14 +311,13 @@ export default function Videos() {
     const handleEdit = (v) => {
 
         setForm({
-            url: v.url || "",
+            url: v.url,
             videoId: v.videoId || "",
             videoTitle: v.videoTitle || "",
             channel: v.channel || "",
             duration: v.duration || "",
             spokenLanguage: v.spokenLanguage || "",
             course: v.course || "",
-            // uploadedBy: v.uploadedBy || "",
         });
 
         setEditingId(v.id);
@@ -596,6 +609,7 @@ export default function Videos() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
                             <input
+                                required
                                 type="text"
                                 name="url"
                                 placeholder="YouTube URL"
@@ -605,14 +619,42 @@ export default function Videos() {
                                 className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none"
                             />
 
-                            <input
-                                type="text"
+                            <select
                                 name="course"
-                                placeholder="Course"
                                 value={form.course}
                                 onChange={handleChange}
-                                className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none"
-                            />
+                                className={`bg-[#111827] border rounded-xl px-4 py-3 outline-none w-full
+        
+                                    }`}
+                            >
+
+                                <option disabled value="">
+                                    Select Course
+                                </option>
+
+                                <option value="C++">
+                                    C++
+                                </option>
+
+                                <option value="C#">
+                                    C#
+                                </option>
+
+                                <option value="Python">
+                                    Python
+                                </option>
+
+                                <option value="JavaScript">
+                                    JavaScript
+                                </option>
+
+                                <option value="HTML/CSS">
+                                    HTML/CSS
+                                </option>
+
+                            </select>
+
+                            
 
                             <input
                                 type="text"
@@ -776,7 +818,7 @@ export default function Videos() {
                                         href={v.url}
                                         target="_blank"
                                         rel="noreferrer"
-                                        className="flex-1 bg-red-500/20 text-red-400 py-2 rounded-xl text-center hover:bg-red-500/30 transition"
+                                        className="flex-1 bg-green-500/20 text-green-400 py-2 rounded-xl text-center hover:bg-green-500/30 transition"
                                     >
                                         Watch
                                     </a>
