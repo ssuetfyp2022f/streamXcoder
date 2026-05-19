@@ -51,6 +51,7 @@ const Login = () => {
     e.preventDefault();
     try {
       await login(formData.email, formData.password);
+      sessionStorage.setItem('justLoggedIn', 'true'); 
       navigate('/dashboard');
     } catch (err) {
       // Error is already handled by AuthContext
@@ -60,6 +61,7 @@ const Login = () => {
   const handleGoogleLogin = async () => {
     try {
       await loginWithGoogle();
+      sessionStorage.setItem('justLoggedIn', 'true');
       navigate('/dashboard');
     } catch (err) {
       // Error is already handled by AuthContext
