@@ -37,6 +37,7 @@ const Login = () => {
     try {
       
       await login(formData.email, formData.password);
+<<<<<<< HEAD
 
       // Get user data for checking role
       const userData = await getUserByEmail(formData.email);
@@ -53,6 +54,10 @@ const Login = () => {
         navigate("/dashboard");
       }
 
+=======
+      sessionStorage.setItem('justLoggedIn', 'true'); 
+      navigate('/dashboard');
+>>>>>>> ec431e23ea0c1c6b2738949dc4f80cedb7109fe1
     } catch (err) {
       console.log(err);
     }
@@ -61,6 +66,7 @@ const Login = () => {
   const handleGoogleLogin = async () => {
     try {
       await loginWithGoogle();
+      sessionStorage.setItem('justLoggedIn', 'true');
       navigate('/dashboard');
     } catch (err) {
       // Error is already handled by AuthContext

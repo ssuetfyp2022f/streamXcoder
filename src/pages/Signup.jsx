@@ -97,6 +97,7 @@ const Signup = () => {
 
   try {
     await signup(formData.email, formData.password, formData.displayName, selectedTechs);
+     sessionStorage.setItem('justLoggedIn', 'true');
     navigate('/login');
   } catch (err) {
     // Error is already handled by AuthContext
@@ -107,6 +108,7 @@ const Signup = () => {
   const handleGoogleSignup = async () => {
   try {
     await loginWithGoogle();
+    sessionStorage.setItem('justLoggedIn', 'true'); 
     navigate('/dashboard');
   } catch (err) {
     console.error('Google signup error:', err);
