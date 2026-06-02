@@ -3,26 +3,24 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, X, Play, Clock, BookOpen, Code, Sparkles, Loader } from "lucide-react";
 
-// for dynamic video fetching form db
+// for dynamic fetching form db
 import { getVideos } from "../api/videos.api";
+import { getPlaylists } from "../api/playlists.api";
 
 const API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
 
-
-
 const Coursespage = () => {
   const navigate = useNavigate();
-
   const [selectedPlaylist, setSelectedPlaylist] = useState(null);
   const [playlistVideos, setPlaylistVideos] = useState([]);
-  const [playlistThumbnails, setPlaylistThumbnails] = useState({});
-  const [playlistCounts, setPlaylistCounts] = useState({});
   const [loadingPlaylist, setLoadingPlaylist] = useState(false); // loading for modal
   const [searchTerm, setSearchTerm] = useState("");
-
-  // fetching video from db
   const [videos, setVideos] = useState([]);
   const [loadingVideos, setLoadingVideos] = useState(true);
+  const [playlists, setPlaylists] = useState([]);
+
+
+  // fetching video from db
   useEffect(() => {
     const fetchVideos = async () => {
       try {
@@ -38,13 +36,19 @@ const Coursespage = () => {
   }, []);
 
 
-  const playlists = [
-    { id: "html01", title: "HTML Complete Course", playlistId: "PLu71SKxNbfoDBNF5s-WH6aLbthSEIMhMI" },
-    { id: "css01", title: "CSS Introduction", playlistId: "PLhzIaPMgkbxBk9-drEC0MBPqEOXpVlwY4" },
-    { id: "js01", title: "Javascript for beginners", playlistId: "PLu71SKxNbfoBuX3f4EOACle2y-tRC5Q37" },
-    { id: "py01", title: "Introduction to Python", playlistId: "PLGjplNEQ1it8-0CmoljS5yeV-GlKSUEt0" },
-    { id: "cpp01", title: "Introduction to C++", playlistId: "PLxCzCOWd7aiF6yRNI5OHQsnUJQfl7Geqj" },
-  ];
+  // fetching playlists from db
+  useEffect(() => {
+    const fetchPlaylists = async () => {
+      try {
+        const data = await getPlaylists();
+        setPlaylists(data);
+      } catch (error) {
+        console.error("Error fetching playlists:", error);
+      }
+    };
+
+    fetchPlaylists();
+  }, []);
 
   // Memoized filters – updates instantly when search changes
   const filteredVideos = useMemo(() => {
@@ -54,10 +58,12 @@ const Coursespage = () => {
   }, [videos, searchTerm]);
 
   const filteredPlaylists = useMemo(() => {
-    return playlists.filter(playlist =>
-      playlist.title.toLowerCase().includes(searchTerm.toLowerCase())
+    return playlists.filter((playlist) =>
+      playlist.playlistTitle
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase())
     );
-  }, [searchTerm]);
+  }, [playlists, searchTerm]);
 
   // Fetch playlist videos with loading state
   const fetchPlaylistVideos = async (playlistId) => {
@@ -89,44 +95,6 @@ const Coursespage = () => {
       setLoadingPlaylist(false);
     }
   };
-
-  // Fetch playlist count and thumbnail (once)
-  const fetchPlaylistCount = async (playlistId) => {
-    try {
-      const response = await fetch(
-        `https://www.googleapis.com/youtube/v3/playlists?part=contentDetails&id=${playlistId}&key=${API_KEY}`
-      );
-      const data = await response.json();
-      if (data.items && data.items.length > 0) {
-        const count = data.items[0].contentDetails.itemCount;
-        setPlaylistCounts(prev => ({ ...prev, [playlistId]: count }));
-      }
-    } catch (error) {
-      console.error("Error fetching playlist count:", error);
-    }
-  };
-
-  const fetchPlaylistThumbnail = async (playlistId) => {
-    try {
-      const response = await fetch(
-        `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=1&playlistId=${playlistId}&key=${API_KEY}`
-      );
-      const data = await response.json();
-      if (data.items && data.items.length > 0) {
-        const thumbnail = data.items[0].snippet.thumbnails.high.url;
-        setPlaylistThumbnails(prev => ({ ...prev, [playlistId]: thumbnail }));
-      }
-    } catch (error) {
-      console.error("Error fetching playlist thumbnail:", error);
-    }
-  };
-
-  useEffect(() => {
-    playlists.forEach(playlist => {
-      fetchPlaylistThumbnail(playlist.playlistId);
-      fetchPlaylistCount(playlist.playlistId);
-    });
-  }, []);
 
   const handlePlaylistClick = async (playlist) => {
     setSelectedPlaylist(playlist);
@@ -268,8 +236,8 @@ const Coursespage = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
 
-              {videos.length > 0 ? (
-                [...videos]
+              {filteredVideos.length > 0 ? (
+                [...filteredVideos]
                   .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
                   .map((video, index) => (
                     <div
@@ -285,24 +253,24 @@ const Coursespage = () => {
                       <div className="relative aspect-video overflow-hidden">
                         <div className="relative ">
 
-                                <img
-                                    src={`https://img.youtube.com/vi/${video.videoId}/maxresdefault.jpg`}
-                                    alt={video.videoTitle}
-                                    className="w-full h-56 object-cover"
-                                />
+                          <img
+                            src={`https://img.youtube.com/vi/${video.videoId}/maxresdefault.jpg`}
+                            alt={video.videoTitle}
+                            className="w-full h-56 object-cover"
+                          />
 
-                                <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent" />
 
-                                <div className="absolute bottom-8 left-4">
+                          <div className="absolute bottom-8 left-4">
 
-                                    <span className="bg-cyan-500 text-white text-xs px-3 py-1 rounded-full font-semibold">
-                                        {video.course}
-                                    </span>
+                            <span className="bg-cyan-500 text-white text-xs px-3 py-1 rounded-full font-semibold">
+                              {video.course}
+                            </span>
 
-                                </div>
+                          </div>
 
-                            </div>
-                        
+                        </div>
+
                         {/* <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" /> */}
                         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                           <div
@@ -337,7 +305,11 @@ const Coursespage = () => {
         )}
 
         {/* Playlists */}
-        <div className="mb-16">
+        {loadingVideos ? (
+          <div className="col-span-full flex justify-center py-10">
+            <Loader className="animate-spin text-[#00ADB5]" size={40} />
+          </div>
+        ) : (<div className="mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-10 flex items-center justify-center gap-2">
             <BookOpen className="text-[#00ADB5]" size={28} />
             <span className="bg-linear-to-r from-[#00ADB5] to-[#61DAFB] bg-clip-text text-transparent">
@@ -359,39 +331,31 @@ const Coursespage = () => {
                   }}
                 >
                   <div className="relative aspect-video overflow-hidden">
-                    {playlistThumbnails[playlist.playlistId] ? (
-                      <img
-                        src={playlistThumbnails[playlist.playlistId]}
-                        alt={playlist.title}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <div className="w-8 h-8 border-2 border-[#00ADB5] border-t-transparent rounded-full animate-spin" />
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <div
-                        className="w-14 h-14 rounded-full flex items-center justify-center"
-                        style={{ backgroundColor: "#00ADB5" }}
-                      >
-                        <Play className="text-white" size={24} fill="white" />
-                      </div>
+                    <img
+                      src={playlist.thumbnail}
+                      alt={playlist.playlistTitle}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+
+                    <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent" />
+
+                    <div className="absolute bottom-2 left-4 z-10">
+                      <span className="bg-cyan-500 text-white text-xs px-3 py-1  rounded-full font-semibold">
+                        {playlist.course}
+                      </span>
                     </div>
+
                     <span
                       className="absolute bottom-2 right-2 px-2 py-1 rounded text-xs font-medium flex items-center gap-1"
                       style={{ backgroundColor: "#222831", color: "#EEEEEE" }}
                     >
                       <Clock size={12} />
-                      {playlistCounts[playlist.playlistId]
-                        ? `${playlistCounts[playlist.playlistId]} videos`
-                        : "..."}
+                      {playlist.duration}
                     </span>
                   </div>
                   <div className="p-4">
                     <h3 className="font-medium text-sm line-clamp-2" style={{ color: "#EEEEEE" }}>
-                      {playlist.title}
+                      {playlist.playlistTitle}
                     </h3>
                   </div>
                 </div>
@@ -403,6 +367,7 @@ const Coursespage = () => {
             )}
           </div>
         </div>
+      )}
 
         {/* Playlist Modal with Loading State */}
         <AnimatePresence>
@@ -411,7 +376,7 @@ const Coursespage = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+              className="fixed inset-0 mt-16 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
               onClick={() => setSelectedPlaylist(null)}
             >
               <motion.div
@@ -424,15 +389,21 @@ const Coursespage = () => {
               >
                 <div className="flex justify-between items-center p-6 border-b" style={{ borderColor: "#393E46" }}>
                   <h2 className="text-2xl font-bold" style={{ color: "#00ADB5" }}>
-                    {selectedPlaylist.title}
+                    {selectedPlaylist.playlistTitle}
                   </h2>
-                  <button
-                    onClick={() => setSelectedPlaylist(null)}
-                    className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/10 transition"
-                    style={{ color: "#EEEEEE" }}
-                  >
-                    <X size={20} />
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <span className="bg-cyan-500 text-white text-xs px-3 py-1 rounded-full font-semibold">
+                      {selectedPlaylist.totalVideos} videos
+                    </span>
+
+                    <button
+                      onClick={() => setSelectedPlaylist(null)}
+                      className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/10 transition"
+                      style={{ color: "#EEEEEE" }}
+                    >
+                      <X size={20} />
+                    </button>
+                  </div>
                 </div>
 
                 <div className="overflow-y-auto p-6 max-h-[calc(90vh-80px)]">

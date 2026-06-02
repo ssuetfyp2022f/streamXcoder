@@ -37,7 +37,6 @@ const Login = () => {
     try {
       
       await login(formData.email, formData.password);
-<<<<<<< HEAD
 
       // Get user data for checking role
       const userData = await getUserByEmail(formData.email);
@@ -51,13 +50,11 @@ const Login = () => {
         navigate("/admin");
       } else {
         console.log("not admin");
-        navigate("/dashboard");
+        // navigate("/dashboard");
+        
+        sessionStorage.setItem('justLoggedIn', 'true'); 
+        navigate('/dashboard');
       }
-
-=======
-      sessionStorage.setItem('justLoggedIn', 'true'); 
-      navigate('/dashboard');
->>>>>>> ec431e23ea0c1c6b2738949dc4f80cedb7109fe1
     } catch (err) {
       console.log(err);
     }

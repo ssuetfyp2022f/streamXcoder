@@ -749,11 +749,19 @@ const Navbar = () => {
 
   // Check if current page is editor
   const isEditorPage = location.pathname.startsWith('/editor');
+  const isAdminPage = location.pathname.startsWith('/admin');
 
+  
   // Auto hide navbar on editor page
   useEffect(() => {
     let timer;
-    if (isEditorPage) {
+    
+    if (isAdminPage) {
+      setShowNavbar(false);
+    }
+ 
+ 
+    else if (isEditorPage) {
       setShowNavbar(true);
       timer = setTimeout(() => {
         setShowNavbar(false);
@@ -812,7 +820,7 @@ const Navbar = () => {
             initial={{ opacity: 0, y: -50, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -50, scale: 0.9 }}
-            className="fixed top-20 right-6 z-[100]"
+            className="fixed top-20 right-6 z-50"
           >
             <div className="relative overflow-hidden rounded-2xl shadow-2xl"
               style={{
@@ -881,7 +889,7 @@ const Navbar = () => {
 
       {/* Main Navbar */}
       <nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500
+        className={`fixed top-0 left-0 right-0 z-40 transition-all duration-500
           ${showNavbar ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'} 
           ${isScrolled
             ? 'backdrop-blur-xl bg-[#393E46]/90 shadow-2xl shadow-black/20'

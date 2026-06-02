@@ -1,6 +1,5 @@
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore";
 import { db } from "../firebase/firebase";
-// import { video } from "framer-motion/client";
 
 // create video
 export const addVideos = async (videoData) => {

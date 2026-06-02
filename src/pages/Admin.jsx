@@ -1,203 +1,77 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-
-import {
-  getVideos,
-  addVideos,
-  updateVideos,
-  deleteVideos,
-} from "../api/videos.api";
-
+import { getVideos } from "../api/videos.api";
 import { getUsers } from "../api/users.api";
+import { motion } from "framer-motion";
+import { useAuth } from '../context/AuthContext';
+import Sidebar from "../components/Sidebar";
 
-export default function StreamXcoderAdminDashboard() {
+export default function Admin() {
   // =========================
   // STATES
   // =========================
   const [users, setUsers] = useState([]);
   const [videos, setVideos] = useState([]);
-
   const [loading, setLoading] = useState(true);
-
-  // form states
-  const [videoTitle, setVideoTitle] = useState("");
-  const [codingLanguage, setCodingLanguage] = useState("");
-  const [spokenLanguage, setSpokenLanguage] = useState("");
-  const [uploadedBy, setUploadedBy] = useState("");
-
-  // edit mode
-  const [editingVideoId, setEditingVideoId] = useState(null);
+  const [isopenSidebar, setisopenSidebar] = useState(true); // Default to true (open)
+  const [activeTab, setActiveTab] = useState("dashboard");
+  const { user } = useAuth();
 
   // =========================
-  // STATIC DATA
+  // STATIC PLAYLISTS (mock)
   // =========================
-  const courses = [
-    {
-      title: "React Mastery",
-      playlists: 6,
-      videos: 42,
-      difficulty: "Beginner",
-      status: "Published",
-    },
-    {
-      title: "Node.js API",
-      playlists: 4,
-      videos: 28,
-      difficulty: "Intermediate",
-      status: "Published",
-    },
-  ];
-
   const playlists = [
-    {
-      title: "React Basics",
-      course: "React Mastery",
-      videos: 10,
-    },
-    {
-      title: "Hooks Deep Dive",
-      course: "React Mastery",
-      videos: 8,
-    },
+    { id: 1, title: "React Basics", videos: 10, createdBy: "Ahmed", thumbnail: "🎯" },
+    { id: 2, title: "Hooks Deep Dive", videos: 8, createdBy: "Ali", thumbnail: "⚛️" },
+    { id: 3, title: "Node API", videos: 12, createdBy: "Usman", thumbnail: "🚀" },
+    { id: 4, title: "MongoDB Mastery", videos: 9, createdBy: "Zain", thumbnail: "🗄️" },
+    { id: 5, title: "Firebase Auth", videos: 6, createdBy: "Hamza", thumbnail: "🔥" },
   ];
 
   // =========================
   // FETCH DATA
   // =========================
   useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        const usersData = await getUsers();
+        const videosData = await getVideos();
+        setUsers(usersData || []);
+        setVideos(videosData || []);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchDashboardData();
   }, []);
-
-  const fetchDashboardData = async () => {
-    try {
-      setLoading(true);
-
-      const usersData = await getUsers();
-      const videosData = await getVideos();
-
-      setUsers(usersData || []);
-      setVideos(videosData || []);
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // =========================
   // FORMAT DATE
   // =========================
-  const formatDate = (timestamp) => {
-    if (!timestamp) return "N/A";
-
-    if (timestamp.seconds) {
-      return new Date(
-        timestamp.seconds * 1000
-      ).toLocaleString();
-    }
-
-    return "N/A";
+  const formatDate = (date) => {
+    if (!date) return "N/A";
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return "Invalid Date";
+    return d.toLocaleString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
 
   // =========================
-  // ADD VIDEO
+  // FILTERED DATA
   // =========================
-  const handleAddVideo = async () => {
-    if (
-      !videoTitle ||
-      !codingLanguage ||
-      !spokenLanguage ||
-      !uploadedBy
-    ) {
-      alert("Please fill all fields");
-      return;
-    }
-
-    const newVideo = {
-      videoTitle,
-      codingLanguage,
-      spokenLanguage,
-      uploadedBy,
-      createdAt: new Date(),
-    };
-
-    const response = await addVideos(newVideo);
-
-    if (response.success) {
-      await fetchDashboardData();
-
-      // clear fields
-      setVideoTitle("");
-      setCodingLanguage("");
-      setSpokenLanguage("");
-      setUploadedBy("");
-
-      alert("Video Added Successfully");
-    }
-  };
-
-  // =========================
-  // DELETE VIDEO
-  // =========================
-  const handleDeleteVideo = async (id) => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this video?"
-    );
-
-    if (!confirmDelete) return;
-
-    const response = await deleteVideos(id);
-
-    if (response.success) {
-      setVideos((prev) =>
-        prev.filter((video) => video.id !== id)
-      );
-
-      alert("Video Deleted");
-    }
-  };
-
-  // =========================
-  // EDIT VIDEO
-  // =========================
-  const handleEditClick = (video) => {
-    setEditingVideoId(video.id);
-
-    setVideoTitle(video.videoTitle || "");
-    setCodingLanguage(video.codingLanguage || "");
-    setSpokenLanguage(video.spokenLanguage || "");
-    setUploadedBy(video.uploadedBy || "");
-  };
-
-  // =========================
-  // UPDATE VIDEO
-  // =========================
-  const handleUpdateVideo = async () => {
-    const updatedData = {
-      videoTitle,
-      codingLanguage,
-      spokenLanguage,
-      uploadedBy,
-    };
-
-    const response = await updateVideos(
-      editingVideoId,
-      updatedData
-    );
-
-    if (response.success) {
-      await fetchDashboardData();
-
-      setEditingVideoId(null);
-
-      setVideoTitle("");
-      setCodingLanguage("");
-      setSpokenLanguage("");
-      setUploadedBy("");
-
-      alert("Video Updated Successfully");
-    }
-  };
+  const latestUsers = [...users].slice(0, 5);
+  const latestVideos = [...videos]
+    .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+    .slice(0, 5);
+  const latestPlaylists = playlists.slice(0, 5);
 
   // =========================
   // STATS
@@ -207,490 +81,291 @@ export default function StreamXcoderAdminDashboard() {
       title: "Total Users",
       value: users.length,
       icon: "👥",
+      color: "from-cyan-500 to-blue-500",
+      bgColor: "bg-gradient-to-br from-cyan-500/20 to-blue-500/20",
+      borderColor: "border-cyan-500/30",
     },
     {
-      title: "Courses",
-      value: courses.length,
-      icon: "📚",
-    },
-    {
-      title: "Playlists",
-      value: playlists.length,
-      icon: "📂",
-    },
-    {
-      title: "Videos",
+      title: "Total Videos",
       value: videos.length,
       icon: "🎥",
+      color: "from-pink-500 to-rose-500",
+      bgColor: "bg-gradient-to-br from-pink-500/20 to-rose-500/20",
+      borderColor: "border-pink-500/30",
+    },
+    {
+      title: "Total Playlists",
+      value: playlists.length,
+      icon: "📂",
+      color: "from-purple-500 to-indigo-500",
+      bgColor: "bg-gradient-to-br from-purple-500/20 to-indigo-500/20",
+      borderColor: "border-purple-500/30",
     },
   ];
 
   // =========================
-  // LOADING
+  // LOADING UI
   // =========================
   if (loading) {
     return (
-      <div className="min-h-screen bg-zinc-950 text-white flex items-center justify-center">
-        <h1 className="text-3xl font-bold">
-          Loading Dashboard...
-        </h1>
+      <div className="min-h-screen bg-linear-to-br from-[#0f172a] to-[#1e293b] flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <h1 className="text-2xl font-bold text-white animate-pulse">
+            Loading Dashboard...
+          </h1>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white flex">
+    <div className="min-h-screen bg-linear-to-br from-[#0f172a] via-[#1e293b] to-[#0f172a] text-white">
       {/* ================= SIDEBAR ================= */}
-      <aside className="w-72 bg-zinc-900 border-r border-zinc-800 p-6 flex flex-col justify-between">
-        <div>
-          <div className="mb-10">
-            <h1 className="text-3xl font-bold text-cyan-400">
-              StreamXcoder
-            </h1>
-
-            <p className="text-zinc-400 mt-2 text-sm">
-              Admin Dashboard
-            </p>
-          </div>
-
-          <nav className="space-y-3">
-            {[
-              "Dashboard",
-              "Users",
-              "Courses",
-              "Playlists",
-              <Link to="/admin/videos">Videos</Link>,
-              "Analytics",
-              "Settings",
-            ].map((item) => (
-              <button
-                key={item}
-                className="w-full text-left px-4 py-3 rounded-2xl hover:bg-cyan-500/10 hover:text-cyan-400 transition"
-              >
-                {item}
-              </button>
-            ))}
-          </nav>
-        </div>
-
-        <div className="bg-zinc-800 rounded-2xl p-4 mt-10">
-          <p className="text-sm text-zinc-400">
-            Logged in as
-          </p>
-
-          <h2 className="font-semibold mt-1">Admin</h2>
-        </div>
-      </aside>
-
+      <Sidebar
+        isopenSidebar={isopenSidebar}
+        setisopenSidebar={setisopenSidebar}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+      />
+      
       {/* ================= MAIN ================= */}
-      <main className="flex-1 p-8 overflow-y-auto">
-        {/* HEADER */}
-        <div className="mb-8">
-          <h2 className="text-4xl font-bold">
-            Dashboard Overview
-          </h2>
-
-          <p className="text-zinc-400 mt-2">
-            Manage users and videos.
-          </p>
-        </div>
-
-        {/* ================= STATS ================= */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-10">
-          {stats.map((item) => (
-            <div
-              key={item.title}
-              className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-zinc-400">
-                  {item.title}
-                </h3>
-
-                <span className="text-3xl">
-                  {item.icon}
+      <main
+        className={`transition-all duration-300 min-h-screen
+        ${isopenSidebar ? "ml-72" : "ml-20"}`}
+      >
+        {/* Header */}
+        <div className="h-24 sticky top-0 z-40 bg-[#0f172a]/80 backdrop-blur-xl border-b border-white/10">
+          <div className="px-8 py-4 flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl font-bold">
+                <span className="bg-linear-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+                  Welcome back, {user?.displayName || "Admin"}!
                 </span>
-              </div>
-
-              <p className="text-4xl font-bold">
-                {item.value}
+                <span className="ml-2 text-white">👋</span>
+              </h1>
+              <p className="text-zinc-400 text-sm mt-1">
+                Here's what's happening with your platform today
               </p>
             </div>
-          ))}
-        </section>
-
-        {/* ================= VIDEO FORM ================= */}
-        <section className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 mb-10">
-          <h2 className="text-2xl font-bold mb-6">
-            {editingVideoId
-              ? "Update Video"
-              : "Add Video"}
-          </h2>
-
-          <div className="grid md:grid-cols-2 gap-4">
-            <input
-              type="text"
-              placeholder="Video Title"
-              value={videoTitle}
-              onChange={(e) =>
-                setVideoTitle(e.target.value)
-              }
-              className="bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 outline-none"
-            />
-
-            <input
-              type="text"
-              placeholder="Coding Language"
-              value={codingLanguage}
-              onChange={(e) =>
-                setCodingLanguage(e.target.value)
-              }
-              className="bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 outline-none"
-            />
-
-            <input
-              type="text"
-              placeholder="Spoken Language"
-              value={spokenLanguage}
-              onChange={(e) =>
-                setSpokenLanguage(e.target.value)
-              }
-              className="bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 outline-none"
-            />
-
-            <input
-              type="text"
-              placeholder="Uploaded By"
-              value={uploadedBy}
-              onChange={(e) =>
-                setUploadedBy(e.target.value)
-              }
-              className="bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 outline-none"
-            />
           </div>
+        </div>
 
-          <div className="mt-6">
-            {editingVideoId ? (
-              <button
-                onClick={handleUpdateVideo}
-                className="bg-yellow-500 hover:bg-yellow-400 text-black px-6 py-3 rounded-2xl font-semibold"
+        <div className="p-8">
+          {/* ================= STATS ================= */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            {stats.map((item, index) => (
+              <motion.div
+                key={item.title}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                whileHover={{ scale: 1.02, y: -5 }}
+                className={`relative overflow-hidden rounded-2xl p-6 border ${item.borderColor} ${item.bgColor} backdrop-blur-sm cursor-pointer`}
               >
-                Update Video
-              </button>
-            ) : (
-              <button
-                onClick={handleAddVideo}
-                className="bg-cyan-500 hover:bg-cyan-400 text-black px-6 py-3 rounded-2xl font-semibold"
-              >
-                Add Video
-              </button>
-            )}
-          </div>
-        </section>
-
-        {/* ================= USERS TABLE ================= */}
-        <section className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 mb-10 overflow-x-auto">
-          <h2 className="text-2xl font-bold mb-6">
-            Users
-          </h2>
-
-          {users.length === 0 ? (
-            <p>No Users Found</p>
-          ) : (
-            <table className="w-full text-left">
-              <thead>
-                <tr className="border-b border-zinc-800 text-zinc-400">
-                  <th className="pb-4">#</th>
-                  <th className="pb-4">Name</th>
-                  <th className="pb-4">Email</th>
-                  <th className="pb-4">
-                    Subscription
-                  </th>
-                  <th className="pb-4">
-                    Last Login
-                  </th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {users.map((user, index) => (
-                  <tr
-                    key={user.id || index}
-                    className="border-b border-zinc-800"
-                  >
-                    <td className="py-5">
-                      {index + 1}
-                    </td>
-
-                    <td>
-                      {user.displayName ||
-                        "No Name"}
-                    </td>
-
-                    <td>{user.email}</td>
-
-                    <td>
-                      {user.subscription ||
-                        "Free"}
-                    </td>
-
-                    <td>
-                      {formatDate(
-                        user.lastLogin
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </section>
-
-        {/* ================= VIDEOS ================= */}
-        <section className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6">
-          <h2 className="text-2xl font-bold mb-6">
-            Videos
-          </h2>
-
-          <div className="space-y-4">
-            {videos.length === 0 ? (
-              <p>No Videos Found</p>
-            ) : (
-              videos.map((video) => (
-                <div
-                  key={video.id}
-                  className="bg-zinc-800 rounded-2xl p-5"
-                >
-                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div className="relative z-10">
+                  <div className="flex justify-between items-start">
                     <div>
-                      <h3 className="font-semibold text-xl">
-                        {video.videoTitle}
-                      </h3>
-
-                      <p className="text-zinc-400 mt-1">
-                        {video.codingLanguage} →{" "}
-                        {video.spokenLanguage}
-                      </p>
-
-                      <p className="text-zinc-500 text-sm mt-1">
-                        Uploaded By:{" "}
-                        {video.uploadedBy}
-                      </p>
-
-                      <p className="text-zinc-500 text-sm mt-1">
-                        Created At:{" "}
-                        {formatDate(
-                          video.createdAt
-                        )}
-                      </p>
+                      <p className="text-zinc-300 text-sm font-medium">{item.title}</p>
+                      <h3 className="text-4xl font-bold mt-2">{item.value}</h3>
                     </div>
-
-                    <div className="flex gap-3">
-                      <button
-                        onClick={() =>
-                          handleEditClick(video)
-                        }
-                        className="bg-cyan-500/10 text-cyan-400 px-4 py-2 rounded-xl"
-                      >
-                        Edit
-                      </button>
-
-                      <button
-                        onClick={() =>
-                          handleDeleteVideo(
-                            video.id
-                          )
-                        }
-                        className="bg-red-500/10 text-red-400 px-4 py-2 rounded-xl"
-                      >
-                        Delete
-                      </button>
-                    </div>
+                    <div className="text-4xl animate-bounce">{item.icon}</div>
                   </div>
                 </div>
-              ))
-            )}
+              </motion.div>
+            ))}
           </div>
-        </section>
+
+          {/* Recent Users Section */}
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 mb-10"
+          >
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+              <div>
+                <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                  👥 Recent Users
+                </h2>
+                <p className="text-zinc-400 mt-1">
+                  {users.length} registered users
+                </p>
+              </div>
+              <Link to="/admin/users">
+                <button className="px-5 py-2.5 rounded-xl bg-cyan-500 text-black font-semibold hover:bg-cyan-400 transition">
+                  View All
+                </button>
+              </Link>
+            </div>
+
+            <div className="space-y-4">
+              {latestUsers.map((user, i) => (
+                <motion.div
+                  key={user.id || i}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.05 }}
+                  whileHover={{
+                    scale: 1.01,
+                    borderColor: "rgba(34,211,238,0.4)",
+                  }}
+                  className="group flex flex-col lg:flex-row lg:items-center justify-between gap-4 rounded-2xl border border-white/10 bg-[#0f172a]/70 p-5 transition-all hover:bg-[#111827]"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="relative">
+                      <div className="w-14 h-14 rounded-2xl bg-linear-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-lg font-bold text-white shadow-lg">
+                        {user.displayName?.charAt(0)?.toUpperCase() || "U"}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="font-semibold text-white text-lg">
+                          {user.displayName}
+                        </h3>
+                        <span
+                          className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+                            user.role === "admin"
+                              ? "bg-emerald-500/15 text-emerald-400"
+                              : "bg-zinc-700/50 text-zinc-300"
+                          }`}
+                        >
+                          {user.role || "User"}
+                        </span>
+                      </div>
+                      <p className="text-zinc-400 text-sm">{user.email}</p>
+                    </div>
+                  </div>
+                  <div className="flex flex-col lg:items-end gap-2">
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                        user.subscription === "Premium"
+                          ? "bg-yellow-500/15 text-yellow-400"
+                          : "bg-zinc-700/50 text-zinc-300"
+                      }`}
+                    >
+                      {user.subscription || "Free"}
+                    </span>
+                    <div className="text-xs text-zinc-500 text-right">
+                      <p>Joined: {formatDate(user.createdAt)}</p>
+                      <p>Last Login: {formatDate(user.lastLogin)}</p>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.section>
+
+          {/* Videos and Playlists Section */}
+          <div className="space-y-8">
+            {/* Videos Section */}
+            <motion.section
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.4 }}
+              className="bg-[#1e293b]/50 backdrop-blur-sm border border-white/10 rounded-2xl p-6"
+            >
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold flex items-center gap-2">
+                    <span>🎥</span> Recent Videos
+                  </h2>
+                  <p className="text-zinc-400 text-sm mt-1">
+                    Total {videos.length} videos uploaded
+                  </p>
+                </div>
+                <Link to="/admin/videos">
+                  <button className="px-4 py-2 bg-pink-500/10 hover:bg-pink-500/20 text-pink-400 rounded-xl transition-all text-sm font-medium">
+                    View All →
+                  </button>
+                </Link>
+              </div>
+              <div className="space-y-4">
+                {latestVideos.length === 0 ? (
+                  <div className="text-center text-zinc-400 py-8">No Videos Found</div>
+                ) : (
+                  latestVideos.map((video, i) => (
+                    <motion.div
+                      key={video.id || i}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      whileHover={{ scale: 1.02 }}
+                      className="bg-[#0f172a]/50 rounded-xl p-3 flex gap-4"
+                    >
+                      <img
+                        src={
+                          video.videoId
+                            ? `https://img.youtube.com/vi/${video.videoId}/mqdefault.jpg`
+                            : "/api/placeholder/160/90"
+                        }
+                        alt={video.videoTitle}
+                        className="w-40 h-24 object-cover rounded-lg"
+                      />
+                      <div className="flex-1">
+                        <h3 className="font-semibold">{video.videoTitle}</h3>
+                        <p className="text-zinc-400 text-sm mt-1">
+                          By: {video.uploadedBy}
+                        </p>
+                        <p className="text-zinc-500 text-xs mt-2">
+                          {formatDate(video.createdAt)}
+                        </p>
+                      </div>
+                    </motion.div>
+                  ))
+                )}
+              </div>
+            </motion.section>
+
+            {/* Playlists Section */}
+            <motion.section
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.5 }}
+              className="bg-[#1e293b]/50 backdrop-blur-sm border border-white/10 rounded-2xl p-6"
+            >
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold flex items-center gap-2">
+                    <span>📂</span> Recent Playlists
+                  </h2>
+                  <p className="text-zinc-400 text-sm mt-1">
+                    Total {playlists.length} playlists available
+                  </p>
+                </div>
+                <Link to="/admin/playlists">
+                  <button className="px-4 py-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 rounded-xl transition-all text-sm font-medium">
+                    View All →
+                  </button>
+                </Link>
+              </div>
+              <div className="space-y-4">
+                {latestPlaylists.map((playlist, i) => (
+                  <motion.div
+                    key={playlist.id}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    whileHover={{ scale: 1.02 }}
+                    className="bg-[#0f172a]/50 rounded-xl p-4 flex justify-between items-center"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="text-4xl">{playlist.thumbnail}</div>
+                      <div>
+                        <h3 className="font-semibold">{playlist.title}</h3>
+                        <p className="text-zinc-400 text-sm">
+                          {playlist.videos} videos
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-cyan-400 text-sm">Created by</p>
+                      <p className="text-zinc-500 text-xs">{playlist.createdBy}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.section>
+          </div>
+        </div>
       </main>
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-// import React, { useEffect, useState } from "react";
-// import { getUsers } from "../api/users.api";
-// import { getVideos } from "../api/videos.api";
-
-// const Admin = () => {
-//     const [users, setUsers] = useState([]);
-//     const [videos, setVideos] = useState([]);
-//     const [loading, setLoading] = useState(true);
-
-//     useEffect(() => {
-//         const fetchUsers = async () => {
-//             try {
-//                 const data = await getUsers();
-//                 setUsers(data);
-//             } catch (error) {
-//                 console.error("Error fetching users:", error);
-//             } finally {
-//                 setLoading(false);
-//             }
-//         };
-
-//         fetchUsers();
-
-//         const fetchVideos = async () => {
-//             try {
-//                 const data = await getVideos();
-//                 setVideos(data);
-//             } catch (error) {
-//                 console.error("Error fetching videos:", error);
-//             } finally {
-//                 setLoading(false);
-//             }
-//         };
-
-//         fetchVideos();
-//     }, []);
-
-//     if (loading) return <p>Loading ...</p>;
-
-//     // date time format convert
-//     const formatDate = (timestamp) => {
-//         if (!timestamp) return "N/A";
-
-//         // Firestore Timestamp
-//         if (timestamp.seconds) {
-//             return new Date(timestamp.seconds * 1000).toLocaleString();
-//         }
-
-//         return "N/A";
-//     };
-
-//     return (
-//         <div className="p-4 sm:p-6">
-//             <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">
-//                 Admin Panel
-//             </h1>
-//             <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">
-//                 - Users Data -
-//             </h1>
-
-//             {users.length === 0 ? (
-//                 <p className="text-gray-500">No users found</p>
-//             ) : (
-//                 <div className="overflow-x-auto shadow rounded-lg border border-gray-200">
-//                     <table className="min-w-full bg-white">
-//                         <thead className="bg-gray-900 text-white">
-//                             <tr>
-//                                 <th className="px-3 sm:px-4 py-3 text-left text-sm">#</th>
-//                                 <th className="px-3 sm:px-4 py-3 text-left text-sm">Name</th>
-//                                 <th className="px-3 sm:px-4 py-3 text-left text-sm">Email</th>
-//                                 <th className="px-3 sm:px-4 py-3 text-left text-sm">Subscription</th>
-//                                 <th className="px-3 sm:px-4 py-3 text-left text-sm">Last Login</th>
-//                             </tr>
-//                         </thead>
-
-//                         <tbody>
-//                             {users.map((user, index) => (
-//                                 <tr
-//                                     key={user.id || index}
-//                                     className="border-b hover:bg-gray-50 transition"
-//                                 >
-//                                     <td className="px-3 sm:px-4 py-3 text-sm text-gray-700">
-//                                         {index + 1}
-//                                     </td>
-
-//                                     <td className="px-3 sm:px-4 py-3 text-sm font-medium text-gray-800">
-//                                         {user.displayName ? user.displayName : user.email}
-//                                     </td>
-
-//                                     <td className="px-3 sm:px-4 py-3 text-sm text-gray-600 break-all">
-//                                         {user.email || "N/A"}
-//                                     </td>
-
-//                                     <td className="px-3 sm:px-4 py-3 text-sm text-gray-600 break-all">
-//                                         {user.subscription || "N/A"}
-//                                     </td>
-
-//                                     <td className="px-3 sm:px-4 py-3 text-sm text-gray-600 break-all">
-//                                         {formatDate(user.lastLogin) || "N/A"}
-//                                     </td>
-//                                 </tr>
-//                             ))}
-//                         </tbody>
-//                     </table>
-//                 </div>
-//             )}
-
-//             <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">
-//                 - Videos Data -
-//             </h1>
-//             {videos.length === 0 ? (
-//                 <p className="text-gray-500">No users found</p>
-//             ) : (
-//                 <div className="overflow-x-auto shadow rounded-lg border border-gray-200">
-//                     <table className="min-w-full bg-white">
-//                         <thead className="bg-gray-900 text-white">
-//                             <tr>
-//                                 <th className="px-3 sm:px-4 py-3 text-left text-sm">#</th>
-//                                 <th className="px-3 sm:px-4 py-3 text-left text-sm">Title</th>
-//                                 <th className="px-3 sm:px-4 py-3 text-left text-sm">Coding Language</th>
-//                                 <th className="px-3 sm:px-4 py-3 text-left text-sm">Spoken Language</th>
-//                                 <th className="px-3 sm:px-4 py-3 text-left text-sm">Uploaded by</th>
-//                                 <th className="px-3 sm:px-4 py-3 text-left text-sm">Uploaded at</th>
-//                             </tr>
-//                         </thead>
-
-//                         <tbody>
-//                             {videos.map((video, index) => (
-//                                 <tr
-//                                     key={video.id || index}
-//                                     className="border-b hover:bg-gray-50 transition"
-//                                 >
-//                                     <td className="px-3 sm:px-4 py-3 text-sm text-gray-700">
-//                                         {index + 1}
-//                                     </td>
-
-//                                     <td className="px-3 sm:px-4 py-3 text-sm font-medium text-gray-800">
-//                                         {video.videoTitle || "N/A"}
-//                                     </td>
-
-//                                     <td className="px-3 sm:px-4 py-3 text-sm text-gray-600 break-all">
-//                                         {video.codingLanguage || "N/A"}
-//                                     </td>
-
-//                                     <td className="px-3 sm:px-4 py-3 text-sm text-gray-600 break-all">
-//                                         {video.spokenLanguage || "N/A"}
-//                                     </td>
-
-//                                     <td className="px-3 sm:px-4 py-3 text-sm text-gray-600 break-all">
-//                                         {video.uploadedBy || "N/A"}
-//                                     </td>
-
-//                                     <td className="px-3 sm:px-4 py-3 text-sm text-gray-600 break-all">
-//                                         {formatDate(video.createdAt) || "N/A"}
-//                                     </td>
-//                                 </tr>
-//                             ))}
-//                         </tbody>
-//                     </table>
-//                 </div>
-//             )}
-//         </div>
-
-//     );
-// };
-
-// export default Admin;

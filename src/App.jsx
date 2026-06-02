@@ -14,6 +14,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Editor from "./pages/Editor";
 import Users from "./pages/Users";
+import Playlists from "./pages/Playlists";
 // import Loader from "./components/Loader";
 
 const Layout = ({ children }) => {
@@ -67,6 +68,12 @@ function App() {
               </Layout>
             } />
 
+            <Route path="/admin/playlists" element={
+              <Layout>
+                <Playlists />
+              </Layout>
+            } />
+            
             <Route path="/admin/users" element={
               <Layout>
                 <Users />
