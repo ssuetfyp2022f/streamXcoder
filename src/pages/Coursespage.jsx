@@ -81,7 +81,11 @@ const Coursespage = () => {
         const newVideos = data.items.map((item) => ({
           videoId: item.snippet.resourceId.videoId,
           title: item.snippet.title,
-          thumbnail: item.snippet.thumbnails.medium.url,
+          thumbnail:
+            item.snippet.thumbnails?.medium?.url ||
+            item.snippet.thumbnails?.high?.url ||
+            item.snippet.thumbnails?.default?.url ||
+            null,
         }));
 
         videos = [...videos, ...newVideos];
@@ -259,7 +263,7 @@ const Coursespage = () => {
                             className="w-full h-56 object-cover"
                           />
 
-                          <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent" />
+                          <div className="absolute inset-0 bg-linear-to-t from-black to-transparent" />
 
                           <div className="absolute bottom-8 left-4">
 
@@ -337,7 +341,7 @@ const Coursespage = () => {
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />
 
-                    <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent" />
+                    <div className="absolute inset-0 bg-linear-to-t from-black to-transparent" />
 
                     <div className="absolute bottom-2 left-4 z-10">
                       <span className="bg-cyan-500 text-white text-xs px-3 py-1  rounded-full font-semibold">
@@ -367,7 +371,7 @@ const Coursespage = () => {
             )}
           </div>
         </div>
-      )}
+        )}
 
         {/* Playlist Modal with Loading State */}
         <AnimatePresence>
@@ -408,7 +412,7 @@ const Coursespage = () => {
 
                 <div className="overflow-y-auto p-6 max-h-[calc(90vh-80px)]">
                   {loadingPlaylist ? (
-                    <div className="flex items-center justify-center py-12">
+                    <div className="col-span-full flex justify-center py-10">
                       <Loader className="animate-spin text-[#00ADB5]" size={40} />
                     </div>
                   ) : (

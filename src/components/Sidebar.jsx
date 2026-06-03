@@ -1,113 +1,186 @@
-import React, { useState } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import { ChevronsLeft, ChevronsRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronsLeft, ChevronsRight, LayoutDashboard, Users, Video, FolderOpen, UserCircle, LogOut } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
-const Sidebar = ({ isopenSidebar, setisopenSidebar, activeTab, setActiveTab }) => {
-    const { user } = useAuth();
+const Sidebar = ({
+    isopenSidebar,
+    setisopenSidebar,
+    activeTab,
+    setActiveTab,
+}) => {
+    const { user, logout } = useAuth();
+    const navigate = useNavigate();
+
+    const handleLogout = async () => {
+        await logout();
+        navigate("/login");
+    };
 
     const navItems = [
-        { id: "dashboard", label: "Dashboard", icon: "📊", path: "/admin" },
-        { id: "users", label: "Users", icon: "👥", path: "/admin/users" },
-        { id: "videos", label: "Videos", icon: "🎥", path: "/admin/videos" },
-        { id: "playlists", label: "Playlists", icon: "📂", path: "/admin/playlists" },
+        { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, path: "/admin" },
+        { id: "users", label: "Users", icon: Users, path: "/admin/users" },
+        { id: "videos", label: "Videos", icon: Video, path: "/admin/videos" },
+        { id: "playlists", label: "Playlists", icon: FolderOpen, path: "/admin/playlists" },
     ];
 
     return (
         <motion.aside
-            initial={{ x: -280 }}
-            animate={{ x: 0 }}
-            transition={{ duration: 0.3 }}
-            className={`fixed top-0 left-0 h-screen bg-[#0f172a]/95 backdrop-blur-xl border-r border-white/10 transition-all duration-300 flex flex-col z-50
-            ${isopenSidebar ? "w-72" : "w-20"}`}
+            animate={{ width: isopenSidebar ? 288 : 80 }}
+            transition={{ duration: 0.35, ease: "easeInOut" }}
+            className="fixed top-0 left-0 h-screen 
+      bg-[#0B1220]/95 backdrop-blur-xl 
+      border-r border-white/5 
+      shadow-2xl flex flex-col z-50 overflow-hidden"
         >
-            {/* Logo Area */}
-            <div className={`h-24 p-6 border-b border-white/10 ${!isopenSidebar && "px-3"}`}>
-                {isopenSidebar ? (
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-linear-to-r from-cyan-500 to-blue-500 rounded-xl flex items-center justify-center">
-                            <span className="text-2xl">🎬</span>
-                        </div>
-                        <div>
-                            <h1 className="text-xl font-bold bg-linear-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-                                streamXcoder
-                            </h1>
-                            <p className="text-xs text-zinc-500">Admin Panel</p>
-                        </div>
+            {/* LOGO */}
+            <div className="h-24 p-4 border-b border-white/5 flex items-center">
+                <div className="flex items-center gap-3 w-full">
+                    <div className="w-10 h-10 bg-linear-to-r from-cyan-300 to-cyan-600 rounded-xl flex items-center justify-center shadow-lg">
+                        <Video className="text-white" size={22} />
                     </div>
-                ) : (
-                    <div className="w-12 h-12 bg-linear-to-r from-cyan-500 to-blue-500 rounded-xl flex items-center justify-center mx-auto">
-                        <span className="text-2xl">🎬</span>
-                    </div>
-                )}
+
+                    <AnimatePresence>
+                        {isopenSidebar && (
+                            <motion.div
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -10 }}
+                                transition={{ duration: 0.2 }}
+                            >
+                                <h1 className="text-lg font-bold bg-linear-to-r from-cyan-300 to-cyan-600 bg-clip-text text-transparent">
+                                    streamXcoder
+                                </h1>
+                                <p className="text-xs text-zinc-500">Admin Panel</p>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
             </div>
 
-            {/* Toggle Button */}
-            <button
+            {/* TOGGLE */}
+            <motion.button
                 onClick={() => setisopenSidebar(!isopenSidebar)}
-                className="absolute -right-3 top-20 rounded-full bg-cyan-500 text-white shadow-lg transition-all hover:scale-110 w-6 h-6 flex items-center justify-center"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                className="
+                absolute top-20 -right-4
+                w-8 h-8 rounded-full
+                bg-linear-to-r from-cyan-300 to-cyan-600
+                border-2 border-[#0B1220]
+                shadow-[0_0_20px_rgba(6,182,212,0.4)]
+                flex items-center justify-center
+                text-white z-50"
             >
-                {isopenSidebar ? <ChevronsLeft size={18} /> : <ChevronsRight size={18} />}
-            </button>
+                <AnimatePresence mode="wait">
+                    <motion.div
+                        key={isopenSidebar ? "left" : "right"}
+                        initial={{ opacity: 0, rotate: -90 }}
+                        animate={{ opacity: 1, rotate: 0 }}
+                        exit={{ opacity: 0, rotate: 90 }}
+                        transition={{ duration: 0.2 }}
+                    >
+                        {isopenSidebar ? (
+                            <ChevronsLeft size={16} />
+                        ) : (
+                            <ChevronsRight size={16} />
+                        )}
+                    </motion.div>
+                </AnimatePresence>
+            </motion.button>
 
-            {/* Navigation */}
+            {/* NAV */}
             <nav className="flex-1 space-y-2 mt-8 px-3">
-                {navItems.map((item) => (
-                    <Link key={item.id} to={item.path}>
-                        <motion.button
-                            whileHover={{ x: 5 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => setActiveTab(item.id)}
-                            className={`flex items-center rounded-xl transition-all relative group
-                            ${isopenSidebar ? "w-full gap-3 px-4 py-3" : "w-12 h-12 justify-center mx-auto"}
-                            ${activeTab === item.id
-                                    ? "bg-linear-to-r from-cyan-500/20 to-blue-500/20 text-cyan-400 border border-cyan-500/30"
-                                    : "hover:bg-white/5"
-                                }`}
-                        >
-                            <span className="text-xl">{item.icon}</span>
+                {navItems.map((item) => {
+                    const Icon = item.icon;
 
-                            {isopenSidebar && (
-                                <span className="text-sm font-medium">{item.label}</span>
-                            )}
+                    return (
+                        <Link key={item.id} to={item.path}>
+                            <motion.button
+                                whileHover={{ x: 5 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => setActiveTab(item.id)}
+                                className={`relative flex items-center rounded-xl transition-all
+                ${isopenSidebar ? "w-full gap-3 px-4 py-3" : "w-12 h-12 justify-center mx-auto"}
+                ${activeTab === item.id
+                                        ? "bg-linear-to-r from-cyan-500/15 to-blue-500/15 text-cyan-300 border border-cyan-500/30"
+                                        : "text-gray-400 hover:text-white hover:bg-white/5"
+                                    }`}
+                            >
+                                <Icon size={20} />
 
-                            {!isopenSidebar && (
-                                <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none">
-                                    {item.label}
-                                </div>
-                            )}
-                        </motion.button>
-                    </Link>
-                ))}
+                                <AnimatePresence>
+                                    {isopenSidebar && (
+                                        <motion.span
+                                            initial={{ opacity: 0, x: -10 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            exit={{ opacity: 0, x: -10 }}
+                                            transition={{ duration: 0.2 }}
+                                            className="text-sm font-medium"
+                                        >
+                                            {item.label}
+                                        </motion.span>
+                                    )}
+                                </AnimatePresence>
+
+                                {/* Tooltip for collapsed */}
+                                {!isopenSidebar && (
+                                    <div
+                                        className="absolute left-full ml-3 px-2 py-1 
+                    bg-[#0B1220] border border-white/10 
+                    text-white text-xs rounded-lg 
+                    opacity-0 group-hover:opacity-100 
+                    transition-all whitespace-nowrap z-50"
+                                    >
+                                        {item.label}
+                                    </div>
+                                )}
+                            </motion.button>
+                        </Link>
+                    );
+                })}
             </nav>
 
-            {/* Admin Profile */}
-            <div className="p-4 border-t border-white/10">
-                <div
-                    className={`bg-linear-to-r from-cyan-500/10 to-blue-500/10 rounded-xl p-3 border border-cyan-500/20
-                    ${!isopenSidebar && "flex justify-center w-14"}`}
-                >
-                    {isopenSidebar ? (
-                        <div className="flex items-center gap-2 mt-1">
-                            <div className="w-8 h-8 bg-linear-to-r from-cyan-500 to-blue-500 rounded-full flex items-center justify-center">
-                                <span>👨‍💼</span>
-                            </div>
-                            <div>
-                                <h2 className="font-semibold text-sm">
-                                    {user?.displayName || "Admin"}
-                                </h2>
-                                <p className="text-xs text-zinc-500">
-                                    {user?.email || "admin@email.com"}
-                                </p>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="w-10 h-10 bg-linear-to-r from-cyan-500 to-blue-500 rounded-full flex items-center justify-center">
-                            <span className="text-lg">👨‍💼</span>
-                        </div>
-                    )}
+            {/* PROFILE */}
+            <div className="p-4 border-t border-white/5">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-linear-to-r from-cyan-300 to-cyan-600 rounded-full flex items-center justify-center shadow-md">
+                        <UserCircle size={18} className="text-white" />
+                    </div>
+
+                    <AnimatePresence>
+                        {isopenSidebar && (
+                            <motion.div
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -10 }}
+                                className="flex items-center justify-between w-full"
+                            >
+                                <div>
+                                    <h2 className="text-sm font-semibold text-white">
+                                        {user?.displayName || "Admin"}
+                                    </h2>
+                                    <p className="text-xs text-zinc-400">
+                                        {user?.email || "admin@email.com"}
+                                    </p>
+                                </div>
+
+                                <motion.button
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.9 }}
+                                    onClick={handleLogout}
+                                    className="p-2 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all"
+                                    title="Logout"
+                                >
+                                    <LogOut size={18} />
+                                </motion.button>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
+
             </div>
         </motion.aside>
     );

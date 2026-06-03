@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getVideos } from "../api/videos.api";
+import { getPlaylists } from "../api/playlists.api";
 import { getUsers } from "../api/users.api";
 import { motion } from "framer-motion";
 import { useAuth } from '../context/AuthContext';
 import Sidebar from "../components/Sidebar";
+import { UsersIcon, Users, FolderOpen, VideoIcon, User, Video } from "lucide-react";
 
 export default function Admin() {
   // =========================
@@ -12,21 +14,11 @@ export default function Admin() {
   // =========================
   const [users, setUsers] = useState([]);
   const [videos, setVideos] = useState([]);
+  const [playlists, setPlaylists] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isopenSidebar, setisopenSidebar] = useState(true); // Default to true (open)
   const [activeTab, setActiveTab] = useState("dashboard");
   const { user } = useAuth();
-
-  // =========================
-  // STATIC PLAYLISTS (mock)
-  // =========================
-  const playlists = [
-    { id: 1, title: "React Basics", videos: 10, createdBy: "Ahmed", thumbnail: "🎯" },
-    { id: 2, title: "Hooks Deep Dive", videos: 8, createdBy: "Ali", thumbnail: "⚛️" },
-    { id: 3, title: "Node API", videos: 12, createdBy: "Usman", thumbnail: "🚀" },
-    { id: 4, title: "MongoDB Mastery", videos: 9, createdBy: "Zain", thumbnail: "🗄️" },
-    { id: 5, title: "Firebase Auth", videos: 6, createdBy: "Hamza", thumbnail: "🔥" },
-  ];
 
   // =========================
   // FETCH DATA
@@ -35,16 +27,24 @@ export default function Admin() {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
-        const usersData = await getUsers();
-        const videosData = await getVideos();
+
+        const [usersData, videosData, playlistsData] =
+          await Promise.all([
+            getUsers(),
+            getVideos(),
+            getPlaylists(),
+          ]);
+
         setUsers(usersData || []);
         setVideos(videosData || []);
+        setPlaylists(playlistsData || []);
       } catch (err) {
         console.error(err);
       } finally {
         setLoading(false);
       }
     };
+
     fetchDashboardData();
   }, []);
 
@@ -68,10 +68,15 @@ export default function Admin() {
   // FILTERED DATA
   // =========================
   const latestUsers = [...users].slice(0, 5);
+
   const latestVideos = [...videos]
     .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
     .slice(0, 5);
-  const latestPlaylists = playlists.slice(0, 5);
+
+  const latestPlaylists = [...playlists]
+    .sort(
+      (a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, 5);
 
   // =========================
   // STATS
@@ -80,7 +85,7 @@ export default function Admin() {
     {
       title: "Total Users",
       value: users.length,
-      icon: "👥",
+      icon: Users,
       color: "from-cyan-500 to-blue-500",
       bgColor: "bg-gradient-to-br from-cyan-500/20 to-blue-500/20",
       borderColor: "border-cyan-500/30",
@@ -88,7 +93,7 @@ export default function Admin() {
     {
       title: "Total Videos",
       value: videos.length,
-      icon: "🎥",
+      icon: VideoIcon,
       color: "from-pink-500 to-rose-500",
       bgColor: "bg-gradient-to-br from-pink-500/20 to-rose-500/20",
       borderColor: "border-pink-500/30",
@@ -96,7 +101,7 @@ export default function Admin() {
     {
       title: "Total Playlists",
       value: playlists.length,
-      icon: "📂",
+      icon: FolderOpen,
       color: "from-purple-500 to-indigo-500",
       bgColor: "bg-gradient-to-br from-purple-500/20 to-indigo-500/20",
       borderColor: "border-purple-500/30",
@@ -120,7 +125,10 @@ export default function Admin() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-[#0f172a] via-[#1e293b] to-[#0f172a] text-white">
+    <div
+      className="min-h-screen text-white relative overflow-hidden"
+      style={{ backgroundColor: "#0A0F1C" }}
+    >
       {/* ================= SIDEBAR ================= */}
       <Sidebar
         isopenSidebar={isopenSidebar}
@@ -128,28 +136,42 @@ export default function Admin() {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
       />
-      
+      <div className="absolute inset-0 overflow-hidden">
+        {[...Array(6)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute rounded-full opacity-10"
+            style={{
+              backgroundColor: i % 2 === 0 ? "#00ADB5" : "#61DAFB",
+              width: 120 + i * 40,
+              height: 120 + i * 40,
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+              filter: "blur(70px)",
+            }}
+            animate={{ y: [0, -50, 0] }}
+            transition={{ duration: 8 + i, repeat: Infinity }}
+          />
+        ))}
+      </div>
       {/* ================= MAIN ================= */}
       <main
         className={`transition-all duration-300 min-h-screen
         ${isopenSidebar ? "ml-72" : "ml-20"}`}
       >
-        {/* Header */}
-        <div className="h-24 sticky top-0 z-40 bg-[#0f172a]/80 backdrop-blur-xl border-b border-white/10">
-          <div className="px-8 py-4 flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold">
-                <span className="bg-linear-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-                  Welcome back, {user?.displayName || "Admin"}!
-                </span>
-                <span className="ml-2 text-white">👋</span>
-              </h1>
-              <p className="text-zinc-400 text-sm mt-1">
-                Here's what's happening with your platform today
-              </p>
-            </div>
+        {/* Heading */}
+        <div className="flex items-center gap-5 ml-8 mt-12 mb-12">
+          <div>
+            <h1 className="text-5xl font-bold bg-linear-to-r from-[#00ADB5] to-[#61DAFB] bg-clip-text text-transparent">
+              Welcome back, {user?.displayName || "Admin"}!
+              <span className="ml-2 text-4xl text-white">👋</span>
+            </h1>
+            <p className="text-gray-400 mt-2">
+              Here's what's happening with your platform today
+            </p>
           </div>
         </div>
+
 
         <div className="p-8">
           {/* ================= STATS ================= */}
@@ -169,7 +191,16 @@ export default function Admin() {
                       <p className="text-zinc-300 text-sm font-medium">{item.title}</p>
                       <h3 className="text-4xl font-bold mt-2">{item.value}</h3>
                     </div>
-                    <div className="text-4xl animate-bounce">{item.icon}</div>
+                    <div
+                      className="w-14 h-14 flex items-center justify-center rounded-xl shadow-lg"
+                      style={{
+                        background: "linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02))",
+                        backdropFilter: "blur(10px)",
+                        border: "1px solid rgba(255,255,255,0.08)",
+                      }}
+                    >
+                      <item.icon className="w-7 h-7 text-white" />
+                    </div>
                   </div>
                 </div>
               </motion.div>
@@ -184,16 +215,17 @@ export default function Admin() {
           >
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
               <div>
-                <h2 className="text-2xl font-bold text-white flex items-center gap-3">
-                  👥 Recent Users
+                <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                  <Users className="w-5 h-5 text-cyan-400" />
+                  Recent Users
                 </h2>
                 <p className="text-zinc-400 mt-1">
                   {users.length} registered users
                 </p>
               </div>
               <Link to="/admin/users">
-                <button className="px-5 py-2.5 rounded-xl bg-cyan-500 text-black font-semibold hover:bg-cyan-400 transition">
-                  View All
+                <button className="px-4 py-2 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 rounded-xl transition-all text-sm font-medium">
+                  View All →
                 </button>
               </Link>
             </div>
@@ -213,7 +245,7 @@ export default function Admin() {
                 >
                   <div className="flex items-center gap-4">
                     <div className="relative">
-                      <div className="w-14 h-14 rounded-2xl bg-linear-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-lg font-bold text-white shadow-lg">
+                      <div className="w-14 h-14 rounded-2xl bg-linear-to-br from-cyan-300 to-cyan-600 flex items-center justify-center text-lg font-bold text-white shadow-lg">
                         {user.displayName?.charAt(0)?.toUpperCase() || "U"}
                       </div>
                     </div>
@@ -223,11 +255,10 @@ export default function Admin() {
                           {user.displayName}
                         </h3>
                         <span
-                          className={`px-2.5 py-1 rounded-full text-xs font-medium ${
-                            user.role === "admin"
-                              ? "bg-emerald-500/15 text-emerald-400"
-                              : "bg-zinc-700/50 text-zinc-300"
-                          }`}
+                          className={`px-2.5 py-1 rounded-full text-xs font-medium ${user.role === "admin"
+                            ? "bg-emerald-500/15 text-emerald-400"
+                            : "bg-zinc-700/50 text-zinc-300"
+                            }`}
                         >
                           {user.role || "User"}
                         </span>
@@ -237,11 +268,10 @@ export default function Admin() {
                   </div>
                   <div className="flex flex-col lg:items-end gap-2">
                     <span
-                      className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                        user.subscription === "Premium"
-                          ? "bg-yellow-500/15 text-yellow-400"
-                          : "bg-zinc-700/50 text-zinc-300"
-                      }`}
+                      className={`px-3 py-1 rounded-full text-xs font-semibold ${user.subscription === "Premium"
+                        ? "bg-yellow-500/15 text-yellow-400"
+                        : "bg-zinc-700/50 text-zinc-300"
+                        }`}
                     >
                       {user.subscription || "Free"}
                     </span>
@@ -266,15 +296,16 @@ export default function Admin() {
             >
               <div className="flex justify-between items-center mb-6">
                 <div>
-                  <h2 className="text-2xl font-bold flex items-center gap-2">
-                    <span>🎥</span> Recent Videos
+                  <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                    <Video className="w-5 h-5 text-cyan-400" />
+                    Recent Videos
                   </h2>
                   <p className="text-zinc-400 text-sm mt-1">
                     Total {videos.length} videos uploaded
                   </p>
                 </div>
                 <Link to="/admin/videos">
-                  <button className="px-4 py-2 bg-pink-500/10 hover:bg-pink-500/20 text-pink-400 rounded-xl transition-all text-sm font-medium">
+                  <button className="px-4 py-2 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 rounded-xl transition-all text-sm font-medium">
                     View All →
                   </button>
                 </Link>
@@ -300,12 +331,14 @@ export default function Admin() {
                         alt={video.videoTitle}
                         className="w-40 h-24 object-cover rounded-lg"
                       />
-                      <div className="flex-1">
+                      <div className="flex-1 mt-4">
                         <h3 className="font-semibold">{video.videoTitle}</h3>
-                        <p className="text-zinc-400 text-sm mt-1">
-                          By: {video.uploadedBy}
+                        
+                        <p className="text-cyan-400 text-xs mt-2">
+                          Uploaded By: {video.uploadedBy}
                         </p>
-                        <p className="text-zinc-500 text-xs mt-2">
+
+                        <p className="text-zinc-500 text-xs">
                           {formatDate(video.createdAt)}
                         </p>
                       </div>
@@ -324,43 +357,56 @@ export default function Admin() {
             >
               <div className="flex justify-between items-center mb-6">
                 <div>
-                  <h2 className="text-2xl font-bold flex items-center gap-2">
-                    <span>📂</span> Recent Playlists
+                  <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                    <FolderOpen className="w-5 h-5 text-cyan-400" />
+                    Recent Playlists
                   </h2>
                   <p className="text-zinc-400 text-sm mt-1">
                     Total {playlists.length} playlists available
                   </p>
                 </div>
                 <Link to="/admin/playlists">
-                  <button className="px-4 py-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 rounded-xl transition-all text-sm font-medium">
+                  <button className="px-4 py-2 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 rounded-xl transition-all text-sm font-medium">
                     View All →
                   </button>
                 </Link>
               </div>
               <div className="space-y-4">
-                {latestPlaylists.map((playlist, i) => (
-                  <motion.div
-                    key={playlist.id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    whileHover={{ scale: 1.02 }}
-                    className="bg-[#0f172a]/50 rounded-xl p-4 flex justify-between items-center"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="text-4xl">{playlist.thumbnail}</div>
-                      <div>
-                        <h3 className="font-semibold">{playlist.title}</h3>
-                        <p className="text-zinc-400 text-sm">
-                          {playlist.videos} videos
+                {latestPlaylists.length === 0 ? (
+                  <div className="text-center text-zinc-400 py-8">
+                    No Playlists Found
+                  </div>
+                ) : (
+                  latestPlaylists.map((playlist, i) => (
+                    <motion.div
+                      key={playlist.id || i}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      whileHover={{ scale: 1.02 }}
+                      className="bg-[#0f172a]/50 rounded-xl p-4 flex gap-4"
+                    >
+                      <img
+                        src={playlist.thumbnail}
+                        alt={playlist.playlistTitle}
+                        className="w-40 h-24 object-cover rounded-lg"
+                      />
+
+                      <div className="flex-1 mt-4">
+                        <h3 className="font-semibold text-white">
+                          {playlist.playlistTitle}
+                        </h3>
+
+                        <p className="text-cyan-400 text-xs mt-2">
+                          Uploaded By: {playlist.uploadedBy}
+                        </p>
+
+                        <p className="text-zinc-500 text-xs">
+                          {formatDate(playlist.createdAt)}
                         </p>
                       </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-cyan-400 text-sm">Created by</p>
-                      <p className="text-zinc-500 text-xs">{playlist.createdBy}</p>
-                    </div>
-                  </motion.div>
-                ))}
+                    </motion.div>
+                  ))
+                )}
               </div>
             </motion.section>
           </div>
