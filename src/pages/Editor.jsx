@@ -1,7 +1,21 @@
 import React, { useState, useEffect, useRef } from "react";
 import Editor from "@monaco-editor/react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Play, Copy, Trash, Download, X, Loader, Terminal, Loader2 } from "lucide-react";
+import {
+  Play,
+  Copy,
+  Trash,
+  Download,
+  X,
+  Loader,
+  Terminal,
+  Loader2,
+  CheckCircle,
+  XCircle,
+  ChevronDown,
+  ChevronUp,
+  GripHorizontal,
+} from "lucide-react";
 import CustomButton from "../components/EditorPageButton";
 import CustomSelect from "../components/EditorPageSelect";
 
@@ -22,6 +36,26 @@ const CodingEditor = () => {
   const [showOutput, setShowOutput] = useState(false);
   const outputRef = useRef(null);
   const [loading, setLoading] = useState(false);
+  const [runStatus, setRunStatus] = useState(null);
+  const [hasNewError, setHasNewError] = useState(false); // for blinking dot
+
+  // New states for requested features
+  const [showInput, setShowInput] = useState(false);
+  const [activeTab, setActiveTab] = useState("output");
+  const [consoleHeight, setConsoleHeight] = useState(250);
+  const [isDraggingConsole, setIsDraggingConsole] = useState(false);
+  const consoleResizeRef = useRef(null);
+  const consoleStartHeightRef = useRef(0);
+  const consoleStartYRef = useRef(0);
+
+  // Resizable split state (video vs editor)
+  const [leftWidth, setLeftWidth] = useState(50);
+  const [isDragging, setIsDragging] = useState(false);
+  const containerRef = useRef(null);
+
+  // Monaco editor refs for error markers
+  const editorRef = useRef(null);
+  const monacoRef = useRef(null);
 
   useEffect(() => {
     const templates = {
@@ -34,7 +68,6 @@ int main() {
   cout << "Hello World!";
   return 0;
 }`,
-
       csharp: `using System;
 
 namespace HelloWorld
@@ -108,7 +141,7 @@ namespace HelloWorld
     return () => clearTimeout(debounceRef.current);
   }, [videoId, videoUrl, videoSourceOption]);
 
-  // ✅ Prevent memory leak (revoke object URL)
+  // Revoke object URL on cleanup
   useEffect(() => {
     return () => {
       if (videoSrc && !videoSrc.includes("youtube")) {
@@ -131,45 +164,185 @@ namespace HelloWorld
     }
   }, [showOutput]);
 
-  // ✅ Fixed handleResult to properly show all errors
+  // Resize drag handlers for video/editor split
+  const handleMouseDown = () => {
+    setIsDragging(true);
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging || !containerRef.current) return;
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const newLeftWidth = ((e.clientX - containerRect.left) / containerRect.width) * 100;
+    if (newLeftWidth >= 20 && newLeftWidth <= 80) {
+      setLeftWidth(newLeftWidth);
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  useEffect(() => {
+    if (isDragging) {
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("mouseup", handleMouseUp);
+    } else {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    }
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isDragging]);
+
+  // Console resize handlers
+  const handleConsoleResizeMouseDown = (e) => {
+    e.preventDefault();
+    setIsDraggingConsole(true);
+    consoleStartYRef.current = e.clientY;
+    consoleStartHeightRef.current = consoleHeight;
+  };
+
+  useEffect(() => {
+    const handleConsoleResizeMouseMove = (e) => {
+      if (!isDraggingConsole) return;
+      const deltaY = consoleStartYRef.current - e.clientY;
+      const newHeight = Math.min(500, Math.max(150, consoleStartHeightRef.current + deltaY));
+      setConsoleHeight(newHeight);
+    };
+
+    const handleConsoleResizeMouseUp = () => {
+      setIsDraggingConsole(false);
+    };
+
+    if (isDraggingConsole) {
+      window.addEventListener("mousemove", handleConsoleResizeMouseMove);
+      window.addEventListener("mouseup", handleConsoleResizeMouseUp);
+    } else {
+      window.removeEventListener("mousemove", handleConsoleResizeMouseMove);
+      window.removeEventListener("mouseup", handleConsoleResizeMouseUp);
+    }
+    return () => {
+      window.removeEventListener("mousemove", handleConsoleResizeMouseMove);
+      window.removeEventListener("mouseup", handleConsoleResizeMouseUp);
+    };
+  }, [isDraggingConsole, consoleHeight]);
+
+  // Clear editor markers
+  const clearEditorMarkers = () => {
+    if (monacoRef.current && editorRef.current) {
+      monacoRef.current.editor.setModelMarkers(editorRef.current.getModel(), "owner", []);
+    }
+  };
+
+  // Parse line number from error message
+  const parseLineNumber = (errorMsg) => {
+    const patterns = [
+      /line (\d+)/i,
+      /:(\d+):/,
+      /\((\d+)\)/,
+      /at line (\d+)/i,
+    ];
+    for (const pattern of patterns) {
+      const match = errorMsg.match(pattern);
+      if (match && match[1]) return parseInt(match[1], 10);
+    }
+    return null;
+  };
+
+  // Set error marker in editor and optionally jump to line
+  const setErrorMarker = (lineNumber, errorMsg) => {
+    if (!monacoRef.current || !editorRef.current || !lineNumber) return;
+
+    const model = editorRef.current.getModel();
+    if (!model) return;
+
+    const endLineNumber = lineNumber;
+    const startColumn = 1;
+    const endColumn = model.getLineMaxColumn(lineNumber);
+
+    monacoRef.current.editor.setModelMarkers(model, "owner", [
+      {
+        severity: monacoRef.current.MarkerSeverity.Error,
+        message: errorMsg,
+        startLineNumber: lineNumber,
+        startColumn,
+        endLineNumber,
+        endColumn,
+      },
+    ]);
+
+    // Reveal the line
+    editorRef.current.revealLineInCenter(lineNumber);
+  };
+
+  // Click handler for error line number
+  const handleErrorLineClick = (lineNumber, errorMsg) => {
+    if (lineNumber) {
+      clearEditorMarkers();
+      setErrorMarker(lineNumber, errorMsg);
+      editorRef.current.focus();
+    }
+  };
+
   const handleResult = (result) => {
     console.log("FULL RESULT:", result);
-
     const statusId = result.status_id;
 
-    // Clear previous outputs
+    // Clear previous outputs and markers
     setOutput("");
     setRuntimeError("");
+    clearEditorMarkers();
 
-    // Handle different status codes
     if (statusId === 6) {
       // Compilation Error
       const compileError = result.compile_output || "Compilation Error";
       setRuntimeError(compileError);
       console.error("Compilation Error:", compileError);
-    }
-    else if (statusId === 7 || statusId === 8 || statusId === 9) {
+      setRunStatus("error");
+      setHasNewError(true);
+      setActiveTab("errors"); // Auto-switch to error tab
+
+      // Try to parse line number and set marker
+      const lineNum = parseLineNumber(compileError);
+      if (lineNum) setErrorMarker(lineNum, compileError);
+    } else if (statusId === 7 || statusId === 8 || statusId === 9) {
       // Runtime Error
       const runtimeErr = result.stderr || "Runtime Error";
       setRuntimeError(runtimeErr);
       console.error("Runtime Error:", runtimeErr);
-    }
-    else if (result.stdout) {
-      // Success - show output
+      setRunStatus("error");
+      setHasNewError(true);
+      setActiveTab("errors"); // Auto-switch to error tab
+
+      const lineNum = parseLineNumber(runtimeErr);
+      if (lineNum) setErrorMarker(lineNum, runtimeErr);
+    } else if (result.stdout) {
+      // Success
       setOutput(result.stdout.trim());
-    }
-    else if (result.stderr) {
-      // Error output
+      setRunStatus("success");
+      setActiveTab("output"); // Auto-switch to output tab
+      setHasNewError(false);
+    } else if (result.stderr) {
       setRuntimeError(result.stderr);
-    }
-    else {
+      setRunStatus("error");
+      setHasNewError(true);
+      setActiveTab("errors");
+      const lineNum = parseLineNumber(result.stderr);
+      if (lineNum) setErrorMarker(lineNum, result.stderr);
+    } else {
       setOutput("No output");
+      setRunStatus("success");
+      setActiveTab("output");
+      setHasNewError(false);
     }
 
     setIsRunning(false);
+    // Reset run status after 2 seconds
+    setTimeout(() => setRunStatus(null), 2000);
   };
 
-  // ✅ Fixed getResult with proper error handling
   const getResult = async (token) => {
     const url = `https://judge0-ce.p.rapidapi.com/submissions/${token}?base64_encoded=false&fields=stdout,stderr,status_id,compile_output,message`;
 
@@ -191,46 +364,58 @@ namespace HelloWorld
           return;
         }
       }
-      // ✅ Fixed: result is defined here
       setRuntimeError("Execution timeout - code took too long to run");
+      setRunStatus("error");
+      setHasNewError(true);
+      setActiveTab("errors");
       setIsRunning(false);
+      setTimeout(() => setRunStatus(null), 2000);
     } catch (err) {
       console.error("Error fetching result:", err);
       setRuntimeError(`Error fetching result: ${err.message}`);
+      setRunStatus("error");
+      setHasNewError(true);
+      setActiveTab("errors");
       setIsRunning(false);
+      setTimeout(() => setRunStatus(null), 2000);
     }
   };
 
-  // ✅ Fixed language ID mapping
   const languageIdMap = {
     javascript: 63,
     python: 71,
     cpp: 54,
     csharp: 51,
-    // HTML is handled separately
   };
 
-  // RUN CODE HANDLER with loading & output panel
   const runCode = async () => {
     if (isRunning) return;
 
     setIsRunning(true);
+    setRunStatus("running");
     setOutput("");
     setRuntimeError("");
     setShowOutput(true);
+    setHasNewError(false); // reset error indicator on new run
+    clearEditorMarkers();
 
-    // ✅ HTML special case
     if (language === "html") {
       renderLivePreview();
       setIsRunning(false);
       setOutput("HTML preview updated");
+      setRunStatus("success");
+      setActiveTab("output");
+      setTimeout(() => setRunStatus(null), 2000);
       return;
     }
 
-    // ✅ Check if language has valid Judge0 ID
     if (!languageIdMap[language]) {
       setRuntimeError(`Language "${language}" is not supported for code execution`);
+      setRunStatus("error");
+      setHasNewError(true);
+      setActiveTab("errors");
       setIsRunning(false);
+      setTimeout(() => setRunStatus(null), 2000);
       return;
     }
 
@@ -247,7 +432,7 @@ namespace HelloWorld
           body: JSON.stringify({
             source_code: code,
             language_id: languageIdMap[language],
-            stdin: input || "", // Ensure stdin is not undefined
+            stdin: input || "",
           }),
         }
       );
@@ -262,18 +447,21 @@ namespace HelloWorld
     } catch (err) {
       console.error("Error running code:", err);
       setRuntimeError(`Error running code: ${err.message}`);
+      setRunStatus("error");
+      setHasNewError(true);
+      setActiveTab("errors");
       setIsRunning(false);
+      setTimeout(() => setRunStatus(null), 2000);
     }
   };
 
-  // Watch HTML/CSS live preview
   const renderLivePreview = () => {
     const iframe = document.getElementById("output-frame");
     if (!iframe) return;
 
     const doc = iframe.contentDocument || iframe.contentWindow.document;
     doc.open();
-    
+
     if (language === "html") {
       doc.write(code);
     } else if (language === "css") {
@@ -283,7 +471,7 @@ namespace HelloWorld
 <body><h1>CSS Preview</h1><p>Your CSS is applied to this content</p></body>
 </html>`);
     }
-    
+
     doc.close();
   };
 
@@ -293,18 +481,65 @@ namespace HelloWorld
     }
   }, [code, language]);
 
+  // Monaco editor mount handler
+  const handleEditorDidMount = (editor, monaco) => {
+    editorRef.current = editor;
+    monacoRef.current = monaco;
+  };
+
+  // Clear console function (resets output & error, and clears indicator)
+  const clearConsole = () => {
+    setOutput("");
+    setRuntimeError("");
+    setHasNewError(false);
+    setActiveTab("output");
+  };
+
+  // Get button text and icon based on status
+  const getRunButtonContent = () => {
+    if (runStatus === "running") {
+      return {
+        text: "Executing...",
+        icon: <Loader className="animate-spin" size={18} />,
+        disabled: true,
+      };
+    }
+    if (runStatus === "success") {
+      return {
+        text: "Success",
+        icon: <CheckCircle size={18} />,
+        disabled: false,
+      };
+    }
+    if (runStatus === "error") {
+      return {
+        text: "Failed",
+        icon: <XCircle size={18} />,
+        disabled: false,
+      };
+    }
+    return {
+      text: "Run Code",
+      icon: <Play size={18} />,
+      disabled: false,
+    };
+  };
+
+  const { text: runButtonText, icon: runButtonIcon, disabled: runButtonDisabled } = getRunButtonContent();
+
   return (
-    <div className="flex flex-col flex-1 bg-[#1b2b55] text-white z-50">
-      {/* TOP BAR */}
+    <div className="flex flex-col flex-1 bg-[#1b2b55] text-white z-50 ">
+      {/* TOP BAR - unchanged */}
       <div className="pt-2 pb-2 px-4 min-h-16 flex flex-col md:flex-row md:items-center gap-3 bg-[#1b2b55] border-b border-white/10 justify-between">
-        {/* Left side: video source inputs */}
         <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:items-center w-full md:w-auto">
           <CustomSelect
             value={videoSourceOption}
             onChange={(e) => setVideoSourceOption(e.target.value)}
             className="w-full sm:w-auto"
           >
-            <option value="" hidden>Select Video Source</option>
+            <option value="" hidden>
+              Select Video Source
+            </option>
             <option value="youtube">YouTube URL</option>
             <option value="local">Local</option>
           </CustomSelect>
@@ -329,10 +564,10 @@ namespace HelloWorld
           )}
         </div>
 
-        {/* Right side: language selector + run button */}
         <div className="flex gap-4 items-center">
           <CustomSelect
             value={language}
+            title="Select language"
             onChange={(e) => setLanguage(e.target.value)}
           >
             <option value="html">HTML</option>
@@ -344,28 +579,30 @@ namespace HelloWorld
 
           <CustomButton
             onClick={runCode}
-            disabled={isRunning || !code}
-            className={language === "html" ? "hidden" : ""}
+            title="Run code"
+            disabled={runButtonDisabled || !code}
+            className={`${language === "html" ? "hidden" : ""} ${runStatus === "success"
+              ? "bg-green-600 hover:bg-green-700"
+              : runStatus === "error"
+                ? "bg-red-600 hover:bg-red-700"
+                : ""
+              } transition-all duration-200`}
           >
-            {isRunning ? (
-              <>
-                <Loader className="animate-spin" size={18} />
-                Running...
-              </>
-            ) : (
-              <>
-                <Play size={18} />
-                Run
-              </>
-            )}
+            {runButtonIcon}
+            {runButtonText}
           </CustomButton>
 
-          <CustomButton onClick={() => setCode("")} disabled={!code}>
+          <CustomButton
+            disabled={!code}
+            title="Clear code"
+            onClick={() => setCode("")}
+          >
             <Trash size={18} />
           </CustomButton>
 
           <CustomButton
             disabled={!code}
+            title="Download code"
             onClick={async () => {
               const extensions = {
                 javascript: "js",
@@ -404,6 +641,8 @@ namespace HelloWorld
 
           <CustomButton
             disabled={!code}
+            title="Copy code"
+            aria-label="Copy code to clipboard"
             onClick={async () => {
               try {
                 await navigator.clipboard.writeText(code);
@@ -418,51 +657,88 @@ namespace HelloWorld
         </div>
       </div>
 
-      {/* MAIN CONTENT: Video + Editor */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* LEFT: VIDEO */}
-        <div className="w-1/2 lg:h-170.5 sm:h-211 bg-black flex items-center justify-center relative">
+      {/* RESIZABLE MAIN CONTENT */}
+      <div
+        ref={containerRef}
+        className="flex flex-1 overflow-hidden  relative"
+        style={{ cursor: isDragging ? "col-resize" : "default" }}
+      >
+        {/* LEFT: VIDEO PANEL */}
+        <div
+          className="bg-black min-w-0 flex lg:h-170.5 sm:h-211 items-center justify-center relative overflow-hidden"
+          style={{ width: `${leftWidth}%` }}
+        >
           {error && (
             <div className="absolute top-4 left-4 bg-red-500/80 text-white px-3 py-1 rounded-lg text-sm z-10">
               {error}
             </div>
           )}
           {videoSrc?.includes("youtube") ? (
-            <iframe
-              src={videoSrc}
-              className="w-full h-full"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              referrerPolicy="strict-origin-when-cross-origin"
-              allowFullScreen
-              title="video"
-            />
+            <div className="w-full h-full overflow-hidden">
+              <iframe
+                src={videoSrc}
+                className={`w-full h-full ${isDragging ? "pointer-events-none" : ""
+                  }`}
+                allowFullScreen
+                title="video"
+              />
+            </div>
           ) : videoSrc ? (
             <video src={videoSrc} controls className="w-full h-full object-contain" />
           ) : (
-            <div className="text-gray-500 text-center">
-              <Terminal size={48} className="mx-auto mb-2 opacity-50" />
-              <p>No video selected</p>
-              <p className="text-sm mb-1.5">Choose a video source above or select one from Courses</p>
+            /* Improved Empty State Card */
+            <div className="max-w-md mx-4 p-6 bg-[#1b2b55] rounded-2xl shadow-2xl border border-white/10 text-center">
+              <div className="text-6xl mb-4">🎥</div>
+              <h3 className="text-xl font-bold mb-2">No Lesson Loaded</h3>
+              <p className="text-gray-300 mb-4">Start by:</p>
+              <ul className="text-left text-gray-300 space-y-2 mb-6">
+                <li className="flex items-center gap-2">
+                  <span className="text-[#00ADB5] font-bold">1.</span> Opening a Course
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-[#00ADB5] font-bold">2.</span> Pasting a YouTube URL
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-[#00ADB5] font-bold">3.</span> Uploading a Local Video
+                </li>
+              </ul>
               <CustomButton useFlex={false} onClick={() => navigate("/courses")}>
-                Go to Courses
+                Browse Courses
               </CustomButton>
             </div>
           )}
         </div>
 
-        {/* RIGHT: EDITOR */}
-        <div className="w-1/2 lg:h-170.5 sm:h-211 bg-[#0f1f3d]">
+        {/* DRAG HANDLE */}
+        <div
+          className="w-1.5 bg-[#00ADB5]/80 hover:bg-[#00ADB5] transition-colors cursor-col-resize active:bg-[#00ADB5] z-20"
+          onMouseDown={handleMouseDown}
+        />
+
+        {/* RIGHT: EDITOR PANEL */}
+        <div
+          className="bg-[#0f1f3d] min-w-0 lg:h-170.5 sm:h-211"
+          style={{
+            flexBasis: `${100 - leftWidth}%`,
+            flexShrink: 0,
+          }}
+        >
           <Editor
             height="100%"
             language={language}
             value={code}
             theme="vs-dark"
             onChange={(value) => setCode(value || "")}
+            onMount={handleEditorDidMount}
             options={{
               fontSize: 14,
               fontFamily: "Fira Code, monospace",
               minimap: { enabled: false },
               scrollBeyondLastLine: false,
+              fontLigatures: true,
+              cursorBlinking: "smooth",
+              smoothScrolling: true,
+              wordWrap: "on",
             }}
           />
         </div>
@@ -479,98 +755,199 @@ namespace HelloWorld
         </div>
       )}
 
-      {/* Error display for non-HTML languages */}
-      {language !== "html" && runtimeError && (
-        <div className="rounded bg-gray-400 p-1">
-          <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
-            <div className="text-red-400 font-mono text-sm whitespace-pre-wrap">
-              {runtimeError}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Add the following <style> for blinking dot animation */}
+      <style>{`
+        @keyframes blink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.3; }
+        }
+        .blinking-dot {
+          width: 8px;
+          height: 8px;
+          background-color: #ef4444;
+          border-radius: 50%;
+          display: inline-block;
+          animation: blink 1s ease-in-out infinite;
+          margin-left: 6px;
+        }
+      `}</style>
 
-      {/* FLOATING OUTPUT PANEL */}
+      {/* ... existing top bar and main editor ... */}
+
+      {/* OUTPUT CONSOLE (non-HTML languages) */}
       {language !== "html" && showOutput && (
         <div
           ref={outputRef}
-          className="fixed bottom-0 left-0 right-0 z-50 bg-[#0f1f3d] border-t-2 border-[#00ADB5] shadow-2xl"
-          style={{ animation: "slideUp 0.3s ease-out" }}
+          className="flex-shrink-0 bg-[#0f1f3d] border-t-2 border-[#00ADB5] flex flex-col"
+          style={{ height: consoleHeight }}
         >
-          <div className="flex items-center justify-between px-4 py-2 bg-[#1b2b55] border-b border-white/10">
-            <div className="flex items-center gap-2">
-              <Terminal size={18} className="text-[#00ADB5]" />
-              <span className="font-semibold">Output Console</span>
-              {isRunning && (
-                <span className="text-xs text-yellow-400 flex items-center gap-1">
-                  <Loader size={12} className="animate-spin" />
-                  Executing...
-                </span>
-              )}
-            </div>
-            <button onClick={() => setShowOutput(false)} className="p-1 hover:bg-white/10 rounded-lg transition">
-              <X size={18} />
-            </button>
+          {/* Resize handle */}
+          <div
+            className="h-2 bg-[#1b2b55] hover:bg-[#00ADB5]/50 cursor-row-resize flex items-center justify-center transition-colors"
+            onMouseDown={handleConsoleResizeMouseDown}
+          >
+            <GripHorizontal size={16} className="text-gray-400" />
           </div>
 
-          <div className="p-4 max-h-64 overflow-auto">
-            {/* Input field */}
-            <div className="mb-3">
+          {/* Console Header */}
+          <div className="flex items-center justify-between px-4 py-2 bg-[#1b2b55] border-b border-white/10">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Terminal size={18} className="text-[#00ADB5]" />
+                <span className="font-semibold">Console</span>
+              </div>
+              {/* Tabs with optional error indicator */}
+              <div className="flex gap-1">
+                <button
+                  onClick={() => setActiveTab("output")}
+                  className={`px-3 py-1 rounded-md text-sm transition ${activeTab === "output"
+                      ? "bg-[#00ADB5] text-white"
+                      : "text-gray-300 hover:bg-white/10"
+                    }`}
+                >
+                  Output
+                </button>
+                <button
+                  onClick={() => {
+                    setActiveTab("errors");
+                    // Optional: mark error as "seen" when manually opening
+                    setHasNewError(false);
+                  }}
+                  className={`px-3 py-1 rounded-md text-sm transition flex items-center gap-1 ${activeTab === "errors"
+                      ? "bg-[#00ADB5] text-white"
+                      : "text-gray-300 hover:bg-white/10"
+                    }`}
+                >
+                  Errors
+                  {hasNewError && runtimeError && (
+                    <span className="blinking-dot" />
+                  )}
+                </button>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              {/* Input Toggle Button */}
+              <button
+                onClick={() => setShowInput(!showInput)}
+                className="p-1.5 hover:bg-white/10 rounded-lg transition flex items-center gap-1 text-sm"
+                title="Toggle input"
+              >
+                {showInput ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                <span className="hidden sm:inline">Input</span>
+              </button>
+              {/* Clear Console Button */}
+              <button
+                onClick={clearConsole}
+                className="p-1.5 hover:bg-white/10 rounded-lg transition"
+                title="Clear console"
+              >
+                <Trash size={16} />
+              </button>
+              {/* Close Button */}
+              <button
+                onClick={() => setShowOutput(false)}
+                className="p-1.5 hover:bg-white/10 rounded-lg transition"
+              >
+                <X size={18} />
+              </button>
+            </div>
+          </div>
+
+          {/* Collapsible Input Area */}
+          {showInput && (
+            <div className="px-4 py-2 border-b border-white/10 bg-[#1b2f4b]">
               <label className="text-sm text-gray-300 block mb-1">Program Input (stdin):</label>
               <textarea
                 placeholder="Enter input here..."
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                className="w-full p-2 rounded bg-[#1b2b55] border border-white/10 text-white font-mono text-sm"
+                className="w-full p-2 rounded bg-[#0f1f3d] border border-white/10 text-white font-mono text-sm focus:outline-none focus:border-[#00ADB5]"
                 rows={2}
               />
             </div>
-            
-            {/* Output display */}
-            <div className="bg-black/40 rounded-lg p-3 border border-white/10">
-              <pre className="text-green-400 font-mono text-sm whitespace-pre-wrap">
-                {output || "Click 'Run' to see output..."}
-              </pre>
-            </div>
-            
-            {/* Error display in output panel */}
-            {runtimeError && (
-              <div className="mt-3 bg-red-500/20 rounded-lg p-3 border border-red-500/30">
-                <pre className="text-red-400 font-mono text-sm whitespace-pre-wrap">
-                  {runtimeError}
+          )}
+
+          {/* Tab Content */}
+          <div className="flex-1 overflow-auto p-4">
+            {activeTab === "output" && (
+              <div className="bg-black/40 rounded-lg p-3 border border-white/10">
+                <pre className="text-green-400 font-mono text-sm whitespace-pre-wrap">
+                  {output || "Click 'Run Code' to see output..."}
                 </pre>
               </div>
             )}
+
+            {activeTab === "errors" && (
+              <div className="bg-red-500/10 rounded-lg p-3 border-l-4 border-red-500">
+                {runtimeError ? (
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-start gap-2">
+                      <XCircle className="text-red-500 flex-shrink-0 mt-0.5" size={18} />
+                      <div className="flex-1">
+                        <p className="text-red-500 font-semibold mb-1">
+                          {runtimeError.includes("Compilation") ? "Compilation Error" : "Runtime Error"}
+                        </p>
+                        <div className="text-red-400 font-mono text-sm whitespace-pre-wrap">
+                          {(() => {
+                            const lineNum = parseLineNumber(runtimeError);
+                            if (lineNum) {
+                              const parts = runtimeError.split(/(line \d+)/i);
+                              return parts.map((part, idx) => {
+                                const match = part.match(/line (\d+)/i);
+                                if (match) {
+                                  return (
+                                    <button
+                                      key={idx}
+                                      onClick={() => handleErrorLineClick(lineNum, runtimeError)}
+                                      className="text-yellow-400 underline hover:text-yellow-300 font-bold"
+                                    >
+                                      {part}
+                                    </button>
+                                  );
+                                }
+                                return part;
+                              });
+                            }
+                            return runtimeError;
+                          })()}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-gray-400 text-sm">No errors to display.</p>
+                )}
+              </div>
+            )}
           </div>
-          
-          <div className="h-1 w-full bg-linear-to-r from-[#00ADB5] to-transparent"></div>
         </div>
       )}
 
-      {loading && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-          <div className="text-center">
-            <Loader2 className="w-12 h-12 text-[#00ADB5] animate-spin mx-auto mb-4" />
-            <p className="text-gray-200">Loading Editor...</p>
-          </div>
-        </div>
-      )}
+      {/* loading overlay ... */}
     </div>
   );
 };
 
 export default CodingEditor;
 
+
 // import React, { useState, useEffect, useRef } from "react";
 // import Editor from "@monaco-editor/react";
 // import { useParams, useNavigate } from "react-router-dom";
-// import { Play, Copy, Trash, Download, X, Loader, Terminal, Loader2 } from "lucide-react"; // ✅ Added Loader2
+// import {
+//   Play,
+//   Copy,
+//   Trash,
+//   Download,
+//   X,
+//   Loader,
+//   Terminal,
+//   Loader2,
+//   CheckCircle,
+//   XCircle,
+// } from "lucide-react";
 // import CustomButton from "../components/EditorPageButton";
 // import CustomSelect from "../components/EditorPageSelect";
-// // 
-// // 
-// // 
-// // 
 
 // const CodingEditor = () => {
 //   const navigate = useNavigate();
@@ -589,42 +966,16 @@ export default CodingEditor;
 //   const [showOutput, setShowOutput] = useState(false);
 //   const outputRef = useRef(null);
 //   const [loading, setLoading] = useState(false);
+//   const [runStatus, setRunStatus] = useState(null); // null, 'running', 'success', 'error'
 
-// // 
-// // 
-// // 
-// // 
-// //   
+//   // Resizable split state
+//   const [leftWidth, setLeftWidth] = useState(50); // percentage
+//   const [isDragging, setIsDragging] = useState(false);
+//   const containerRef = useRef(null);
 
-// const [panelHeight, setPanelHeight] = useState(300);
-// const [activeTab, setActiveTab] = useState("output");
-// const [followOutput, setFollowOutput] = useState(true);
-// const [isResizing, setIsResizing] = useState(false);
-// const startResize = () => {
-//   setIsResizing(true);
-// };
-
-// const stopResize = () => {
-//   setIsResizing(false);
-// };
-
-// const resize = (e) => {
-//   if (!isResizing) return;
-//   const newHeight = window.innerHeight - e.clientY;
-//   if (newHeight > 150 && newHeight < 600) {
-//     setPanelHeight(newHeight);
-//   }
-// };
-// useEffect(() => {
-//   window.addEventListener("mousemove", resize);
-//   window.addEventListener("mouseup", stopResize);
-
-//   return () => {
-//     window.removeEventListener("mousemove", resize);
-//     window.removeEventListener("mouseup", stopResize);
-//   };
-// }, [isResizing]);
-
+//   // Monaco editor refs for error markers
+//   const editorRef = useRef(null);
+//   const monacoRef = useRef(null);
 
 //   useEffect(() => {
 //     const templates = {
@@ -637,7 +988,6 @@ export default CodingEditor;
 //   cout << "Hello World!";
 //   return 0;
 // }`,
-
 //       csharp: `using System;
 
 // namespace HelloWorld
@@ -646,7 +996,7 @@ export default CodingEditor;
 //   {
 //     static void Main(string[] args)
 //     {
-//       Console.WriteLine("Hello World!");  
+//       Console.WriteLine("Hello World!");
 //     }
 //   }
 // }`,
@@ -711,7 +1061,7 @@ export default CodingEditor;
 //     return () => clearTimeout(debounceRef.current);
 //   }, [videoId, videoUrl, videoSourceOption]);
 
-//   // ✅ Prevent memory leak (revoke object URL)
+//   // Revoke object URL on cleanup
 //   useEffect(() => {
 //     return () => {
 //       if (videoSrc && !videoSrc.includes("youtube")) {
@@ -734,45 +1084,133 @@ export default CodingEditor;
 //     }
 //   }, [showOutput]);
 
-//   // ✅ Fixed handleResult to properly show all errors
+//   // Resize drag handlers
+//   const handleMouseDown = () => {
+//     setIsDragging(true);
+//   };
+
+//   const handleMouseMove = (e) => {
+//     if (!isDragging || !containerRef.current) return;
+//     const containerRect = containerRef.current.getBoundingClientRect();
+//     const newLeftWidth = ((e.clientX - containerRect.left) / containerRect.width) * 100;
+//     if (newLeftWidth >= 20 && newLeftWidth <= 80) {
+//       setLeftWidth(newLeftWidth);
+//     }
+//   };
+
+//   const handleMouseUp = () => {
+//     setIsDragging(false);
+//   };
+
+//   useEffect(() => {
+//     if (isDragging) {
+//       window.addEventListener("mousemove", handleMouseMove);
+//       window.addEventListener("mouseup", handleMouseUp);
+//     } else {
+//       window.removeEventListener("mousemove", handleMouseMove);
+//       window.removeEventListener("mouseup", handleMouseUp);
+//     }
+//     return () => {
+//       window.removeEventListener("mousemove", handleMouseMove);
+//       window.removeEventListener("mouseup", handleMouseUp);
+//     };
+//   }, [isDragging]);
+
+//   // Clear editor markers
+//   const clearEditorMarkers = () => {
+//     if (monacoRef.current && editorRef.current) {
+//       monacoRef.current.editor.setModelMarkers(editorRef.current.getModel(), "owner", []);
+//     }
+//   };
+
+//   // Parse line number from error message
+//   const parseLineNumber = (errorMsg) => {
+//     const patterns = [
+//       /line (\d+)/i,
+//       /:(\d+):/,
+//       /\((\d+)\)/,
+//       /at line (\d+)/i,
+//     ];
+//     for (const pattern of patterns) {
+//       const match = errorMsg.match(pattern);
+//       if (match && match[1]) return parseInt(match[1], 10);
+//     }
+//     return null;
+//   };
+
+//   // Set error marker in editor
+//   const setErrorMarker = (lineNumber, errorMsg) => {
+//     if (!monacoRef.current || !editorRef.current || !lineNumber) return;
+
+//     const model = editorRef.current.getModel();
+//     if (!model) return;
+
+//     const endLineNumber = lineNumber;
+//     const startColumn = 1;
+//     const endColumn = model.getLineMaxColumn(lineNumber);
+
+//     monacoRef.current.editor.setModelMarkers(model, "owner", [
+//       {
+//         severity: monacoRef.current.MarkerSeverity.Error,
+//         message: errorMsg,
+//         startLineNumber: lineNumber,
+//         startColumn,
+//         endLineNumber,
+//         endColumn,
+//       },
+//     ]);
+
+//     // Reveal the line
+//     editorRef.current.revealLineInCenter(lineNumber);
+//   };
+
 //   const handleResult = (result) => {
 //     console.log("FULL RESULT:", result);
-
 //     const statusId = result.status_id;
 
-//     // Clear previous outputs
+//     // Clear previous outputs and markers
 //     setOutput("");
 //     setRuntimeError("");
+//     clearEditorMarkers();
 
-//     // Handle different status codes
 //     if (statusId === 6) {
 //       // Compilation Error
 //       const compileError = result.compile_output || "Compilation Error";
 //       setRuntimeError(compileError);
 //       console.error("Compilation Error:", compileError);
-//     }
-//     else if (statusId === 7 || statusId === 8 || statusId === 9) {
+//       setRunStatus("error");
+
+//       // Try to parse line number and set marker
+//       const lineNum = parseLineNumber(compileError);
+//       if (lineNum) setErrorMarker(lineNum, compileError);
+//     } else if (statusId === 7 || statusId === 8 || statusId === 9) {
 //       // Runtime Error
 //       const runtimeErr = result.stderr || "Runtime Error";
 //       setRuntimeError(runtimeErr);
 //       console.error("Runtime Error:", runtimeErr);
-//     }
-//     else if (result.stdout) {
-//       // Success - show output
+//       setRunStatus("error");
+
+//       const lineNum = parseLineNumber(runtimeErr);
+//       if (lineNum) setErrorMarker(lineNum, runtimeErr);
+//     } else if (result.stdout) {
+//       // Success
 //       setOutput(result.stdout.trim());
-//     }
-//     else if (result.stderr) {
-//       // Error output
+//       setRunStatus("success");
+//     } else if (result.stderr) {
 //       setRuntimeError(result.stderr);
-//     }
-//     else {
+//       setRunStatus("error");
+//       const lineNum = parseLineNumber(result.stderr);
+//       if (lineNum) setErrorMarker(lineNum, result.stderr);
+//     } else {
 //       setOutput("No output");
+//       setRunStatus("success");
 //     }
 
 //     setIsRunning(false);
+//     // Reset run status after 2 seconds
+//     setTimeout(() => setRunStatus(null), 2000);
 //   };
 
-//   // ✅ Fixed getResult with proper error handling
 //   const getResult = async (token) => {
 //     const url = `https://judge0-ce.p.rapidapi.com/submissions/${token}?base64_encoded=false&fields=stdout,stderr,status_id,compile_output,message`;
 
@@ -794,46 +1232,50 @@ export default CodingEditor;
 //           return;
 //         }
 //       }
-//       // ✅ Fixed: result is defined here
 //       setRuntimeError("Execution timeout - code took too long to run");
+//       setRunStatus("error");
 //       setIsRunning(false);
+//       setTimeout(() => setRunStatus(null), 2000);
 //     } catch (err) {
 //       console.error("Error fetching result:", err);
 //       setRuntimeError(`Error fetching result: ${err.message}`);
+//       setRunStatus("error");
 //       setIsRunning(false);
+//       setTimeout(() => setRunStatus(null), 2000);
 //     }
 //   };
 
-//   // ✅ Fixed language ID mapping
 //   const languageIdMap = {
 //     javascript: 63,
 //     python: 71,
 //     cpp: 54,
 //     csharp: 51,
-//     // HTML is handled separately
 //   };
 
-//   // RUN CODE HANDLER with loading & output panel
 //   const runCode = async () => {
 //     if (isRunning) return;
 
 //     setIsRunning(true);
+//     setRunStatus("running");
 //     setOutput("");
 //     setRuntimeError("");
 //     setShowOutput(true);
+//     clearEditorMarkers();
 
-//     // ✅ HTML special case
 //     if (language === "html") {
 //       renderLivePreview();
 //       setIsRunning(false);
 //       setOutput("HTML preview updated");
+//       setRunStatus("success");
+//       setTimeout(() => setRunStatus(null), 2000);
 //       return;
 //     }
 
-//     // ✅ Check if language has valid Judge0 ID
 //     if (!languageIdMap[language]) {
 //       setRuntimeError(`Language "${language}" is not supported for code execution`);
+//       setRunStatus("error");
 //       setIsRunning(false);
+//       setTimeout(() => setRunStatus(null), 2000);
 //       return;
 //     }
 
@@ -850,7 +1292,7 @@ export default CodingEditor;
 //           body: JSON.stringify({
 //             source_code: code,
 //             language_id: languageIdMap[language],
-//             stdin: input || "", // Ensure stdin is not undefined
+//             stdin: input || "",
 //           }),
 //         }
 //       );
@@ -865,11 +1307,12 @@ export default CodingEditor;
 //     } catch (err) {
 //       console.error("Error running code:", err);
 //       setRuntimeError(`Error running code: ${err.message}`);
+//       setRunStatus("error");
 //       setIsRunning(false);
+//       setTimeout(() => setRunStatus(null), 2000);
 //     }
 //   };
 
-//   // Watch HTML/CSS live preview
 //   const renderLivePreview = () => {
 //     const iframe = document.getElementById("output-frame");
 //     if (!iframe) return;
@@ -896,18 +1339,57 @@ export default CodingEditor;
 //     }
 //   }, [code, language]);
 
+//   // Monaco editor mount handler
+//   const handleEditorDidMount = (editor, monaco) => {
+//     editorRef.current = editor;
+//     monacoRef.current = monaco;
+//   };
+
+//   // Get button text and icon based on status
+//   const getRunButtonContent = () => {
+//     if (runStatus === "running") {
+//       return {
+//         text: "Executing...",
+//         icon: <Loader className="animate-spin" size={18} />,
+//         disabled: true,
+//       };
+//     }
+//     if (runStatus === "success") {
+//       return {
+//         text: "Success",
+//         icon: <CheckCircle size={18} />,
+//         disabled: false,
+//       };
+//     }
+//     if (runStatus === "error") {
+//       return {
+//         text: "Failed",
+//         icon: <XCircle size={18} />,
+//         disabled: false,
+//       };
+//     }
+//     return {
+//       text: "Run Code",
+//       icon: <Play size={18} />,
+//       disabled: false,
+//     };
+//   };
+
+//   const { text: runButtonText, icon: runButtonIcon, disabled: runButtonDisabled } = getRunButtonContent();
+
 //   return (
 //     <div className="flex flex-col flex-1 bg-[#1b2b55] text-white z-50">
 //       {/* TOP BAR */}
 //       <div className="pt-2 pb-2 px-4 min-h-16 flex flex-col md:flex-row md:items-center gap-3 bg-[#1b2b55] border-b border-white/10 justify-between">
-//         {/* Left side: video source inputs */}
 //         <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:items-center w-full md:w-auto">
 //           <CustomSelect
 //             value={videoSourceOption}
 //             onChange={(e) => setVideoSourceOption(e.target.value)}
 //             className="w-full sm:w-auto"
 //           >
-//             <option value="" hidden>Select Video Source</option>
+//             <option value="" hidden>
+//               Select Video Source
+//             </option>
 //             <option value="youtube">YouTube URL</option>
 //             <option value="local">Local</option>
 //           </CustomSelect>
@@ -932,10 +1414,10 @@ export default CodingEditor;
 //           )}
 //         </div>
 
-//         {/* Right side: language selector + run button */}
 //         <div className="flex gap-4 items-center">
 //           <CustomSelect
 //             value={language}
+//             title = "Select language"
 //             onChange={(e) => setLanguage(e.target.value)}
 //           >
 //             <option value="html">HTML</option>
@@ -947,28 +1429,30 @@ export default CodingEditor;
 
 //           <CustomButton
 //             onClick={runCode}
-//             disabled={isRunning || !code}
-//             className={language === "html" ? "hidden" : ""}
+//             title="Run code"
+//             disabled={runButtonDisabled || !code}
+//             className={`${language === "html" ? "hidden" : ""} ${runStatus === "success"
+//               ? "bg-green-600 hover:bg-green-700"
+//               : runStatus === "error"
+//                 ? "bg-red-600 hover:bg-red-700"
+//                 : ""
+//               } transition-all duration-200`}
 //           >
-//             {isRunning ? (
-//               <>
-//                 <Loader className="animate-spin" size={18} />
-//                 Running...
-//               </>
-//             ) : (
-//               <>
-//                 <Play size={18} />
-//                 Run
-//               </>
-//             )}
+//             {runButtonIcon}
+//             {runButtonText}
 //           </CustomButton>
 
-//           <CustomButton onClick={() => setCode("")} disabled={!code}>
+//           <CustomButton
+//           disabled={!code}
+//           title="Clear code"
+//           onClick={() => setCode("")}
+//           >
 //             <Trash size={18} />
 //           </CustomButton>
 
 //           <CustomButton
 //             disabled={!code}
+//             title="Download code"
 //             onClick={async () => {
 //               const extensions = {
 //                 javascript: "js",
@@ -1007,6 +1491,8 @@ export default CodingEditor;
 
 //           <CustomButton
 //             disabled={!code}
+//             title="Copy code"
+//             aria-label="Copy code to clipboard"
 //             onClick={async () => {
 //               try {
 //                 await navigator.clipboard.writeText(code);
@@ -1021,51 +1507,88 @@ export default CodingEditor;
 //         </div>
 //       </div>
 
-//       {/* MAIN CONTENT: Video + Editor */}
-//       <div className="flex flex-1 overflow-hidden">
-//         {/* LEFT: VIDEO */}
-//         <div className="w-1/2 lg:h-170.5 sm:h-211 bg-black flex items-center justify-center relative">
+//       {/* RESIZABLE MAIN CONTENT */}
+//       <div
+//         ref={containerRef}
+//         className="flex flex-1 overflow-hidden  relative"
+//         style={{ cursor: isDragging ? "col-resize" : "default" }}
+//       >
+//         {/* LEFT: VIDEO PANEL */}
+//         <div
+//           className="bg-black min-w-0 flex lg:h-170.5 sm:h-211 items-center justify-center relative overflow-hidden"
+//           style={{ width: `${leftWidth}%` }}
+//         >
 //           {error && (
 //             <div className="absolute top-4 left-4 bg-red-500/80 text-white px-3 py-1 rounded-lg text-sm z-10">
 //               {error}
 //             </div>
 //           )}
 //           {videoSrc?.includes("youtube") ? (
-//             <iframe
-//               src={videoSrc}
-//               className="w-full h-full"
-//               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-//               referrerPolicy="strict-origin-when-cross-origin"
-//               allowFullScreen
-//               title="video"
-//             />
+//             <div className="w-full h-full overflow-hidden">
+//               <iframe
+//                 src={videoSrc}
+//                 className={`w-full h-full ${isDragging ? "pointer-events-none" : ""
+//                   }`}
+//                 allowFullScreen
+//                 title="video"
+//               />
+//             </div>
 //           ) : videoSrc ? (
 //             <video src={videoSrc} controls className="w-full h-full object-contain" />
 //           ) : (
-//             <div className="text-gray-500 text-center">
-//               <Terminal size={48} className="mx-auto mb-2 opacity-50" />
-//               <p>No video selected</p>
-//               <p className="text-sm mb-1.5">Choose a video source above or select one from Courses</p>
+//             /* Improved Empty State Card */
+//             <div className="max-w-md mx-4 p-6 bg-[#1b2b55] rounded-2xl shadow-2xl border border-white/10 text-center">
+//               <div className="text-6xl mb-4">🎥</div>
+//               <h3 className="text-xl font-bold mb-2">No Lesson Loaded</h3>
+//               <p className="text-gray-300 mb-4">Start by:</p>
+//               <ul className="text-left text-gray-300 space-y-2 mb-6">
+//                 <li className="flex items-center gap-2">
+//                   <span className="text-[#00ADB5] font-bold">1.</span> Opening a Course
+//                 </li>
+//                 <li className="flex items-center gap-2">
+//                   <span className="text-[#00ADB5] font-bold">2.</span> Pasting a YouTube URL
+//                 </li>
+//                 <li className="flex items-center gap-2">
+//                   <span className="text-[#00ADB5] font-bold">3.</span> Uploading a Local Video
+//                 </li>
+//               </ul>
 //               <CustomButton useFlex={false} onClick={() => navigate("/courses")}>
-//                 Go to Courses
+//                 Browse Courses
 //               </CustomButton>
 //             </div>
 //           )}
 //         </div>
 
-//         {/* RIGHT: EDITOR */}
-//         <div className="w-1/2 lg:h-170.5 sm:h-211 bg-[#0f1f3d]">
+//         {/* DRAG HANDLE */}
+//         <div
+//           className="w-1.5 bg-[#00ADB5]/80 hover:bg-[#00ADB5] transition-colors cursor-col-resize active:bg-[#00ADB5] z-20"
+//           onMouseDown={handleMouseDown}
+//         />
+
+//         {/* RIGHT: EDITOR PANEL */}
+//         <div
+//           className="bg-[#0f1f3d] min-w-0 lg:h-170.5 sm:h-211"
+//           style={{
+//             flexBasis: `${100 - leftWidth}%`,
+//             flexShrink: 0,
+//           }}
+//         >
 //           <Editor
 //             height="100%"
 //             language={language}
 //             value={code}
 //             theme="vs-dark"
 //             onChange={(value) => setCode(value || "")}
+//             onMount={handleEditorDidMount}
 //             options={{
 //               fontSize: 14,
 //               fontFamily: "Fira Code, monospace",
 //               minimap: { enabled: false },
 //               scrollBeyondLastLine: false,
+//               fontLigatures: true,
+//               cursorBlinking: "smooth",
+//               smoothScrolling: true,
+//               wordWrap: "on",
 //             }}
 //           />
 //         </div>
@@ -1082,128 +1605,72 @@ export default CodingEditor;
 //         </div>
 //       )}
 
-//       {/* Error display for non-HTML languages */}
-//       {language !== "html" && runtimeError && (
-//         <div className="rounded bg-gray-400 p-1">
-//           <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
-//             <div className="text-red-400 font-mono text-sm whitespace-pre-wrap">
-//               {runtimeError}
-//             </div>
-//           </div>
-//         </div>
-//       )}
-
 //       {/* FLOATING OUTPUT PANEL */}
-//       {/* FLOATING OUTPUT PANEL (Terminal Style) */}
 //       {language !== "html" && showOutput && (
-//   <div
-//     ref={outputRef}
-//     className="fixed bottom-0 left-0 right-0 z-50 bg-[#0a0f1c] border-t border-[#00ADB5] shadow-2xl font-mono"
-//     style={{ height: panelHeight }}
-//   >
-//     {/* 🔼 Resize Handle */}
-//     <div
-//       onMouseDown={startResize}
-//       className="h-2 cursor-ns-resize bg-[#00ADB5]/30 hover:bg-[#00ADB5]/60 transition"
-//     />
-
-//     {/* HEADER */}
-//     <div className="flex items-center justify-between px-3 py-2 bg-[#1b2b55] border-b border-white/10">
-      
-//       {/* Tabs */}
-//       <div className="flex gap-3 text-sm">
-//         {["output", "errors", "input"].map((tab) => (
-//           <button
-//             key={tab}
-//             onClick={() => setActiveTab(tab)}
-//             className={`capitalize px-2 py-1 rounded ${
-//               activeTab === tab
-//                 ? "bg-[#00ADB5] text-black"
-//                 : "text-gray-300 hover:bg-white/10"
-//             }`}
-//           >
-//             {tab}
-//           </button>
-//         ))}
-//       </div>
-
-//       {/* Actions */}
-//       <div className="flex items-center gap-2">
-        
-//         {/* Follow toggle */}
-//         <button
-//           onClick={() => setFollowOutput(!followOutput)}
-//           className="text-xs px-2 py-1 rounded bg-white/10 hover:bg-white/20"
+//         <div
+//           ref={outputRef}
+//           className="fixed bottom-0 left-0 right-0 z-50 bg-[#0f1f3d] border-t-2 border-[#00ADB5] shadow-2xl"
+//           style={{ animation: "slideUp 0.3s ease-out" }}
 //         >
-//           {followOutput ? "Follow ON" : "Follow OFF"}
-//         </button>
+//           <div className="flex items-center justify-between px-4 py-2 bg-[#1b2b55] border-b border-white/10">
+//             <div className="flex items-center gap-2">
+//               <Terminal size={18} className="text-[#00ADB5]" />
+//               <span className="font-semibold">Output Console</span>
+//               {isRunning && (
+//                 <span className="text-xs text-yellow-400 flex items-center gap-1">
+//                   <Loader size={12} className="animate-spin" />
+//                   Executing...
+//                 </span>
+//               )}
+//             </div>
+//             <button
+//               onClick={() => setShowOutput(false)}
+//               className="p-1 hover:bg-white/10 rounded-lg transition"
+//             >
+//               <X size={18} />
+//             </button>
+//           </div>
 
-//         {/* Clear */}
-//         <button
-//           onClick={() => {
-//             setOutput("");
-//             setRuntimeError("");
-//             setInput("");
-//           }}
-//           className="text-xs px-2 py-1 rounded bg-red-500/20 hover:bg-red-500/40"
-//         >
-//           Clear
-//         </button>
+//           <div className="p-4 max-h-64 overflow-auto">
+//             <div className="mb-3">
+//               <label className="text-sm text-gray-300 block mb-1">
+//                 Program Input (stdin):
+//               </label>
+//               <textarea
+//                 placeholder="Enter input here..."
+//                 value={input}
+//                 onChange={(e) => setInput(e.target.value)}
+//                 className="w-full p-2 rounded bg-[#1b2f4b] border border-white/10 text-white font-mono text-sm focus:outline-none focus:border-[#00ADB5]"
+//                 rows={2}
+//               />
+//             </div>
 
-//         {/* Close */}
-//         <button
-//           onClick={() => setShowOutput(false)}
-//           className="p-1 hover:bg-white/10 rounded"
-//         >
-//           ✕
-//         </button>
-//       </div>
-//     </div>
+//             <div className="bg-black/40 rounded-lg p-3 border border-white/10">
+//               <pre className="text-green-400 font-mono text-sm whitespace-pre-wrap">
+//                 {output || "Click 'Run Code' to see output..."}
+//               </pre>
+//             </div>
 
-//     {/* BODY */}
-//     <div className="p-3 h-full overflow-auto bg-black/80">
-      
-//       {/* OUTPUT TAB */}
-//       {activeTab === "output" && (
-//         <pre className="text-green-400 text-sm whitespace-pre-wrap">
-//           {output || "No output yet..."}
-//         </pre>
-//       )}
+//             {runtimeError && (
+//               <div className="mt-3 bg-red-500/10 rounded-lg p-3 border-l-4 border-red-500">
+//                 <div className="flex items-start gap-2">
+//                   <XCircle className="text-red-500 flex-shrink-0 mt-0.5" size={18} />
+//                   <div className="flex-1">
+//                     <p className="text-red-500 font-semibold mb-1">
+//                       {runtimeError.includes("Compilation") ? "Compilation Error" : "Runtime Error"}
+//                     </p>
+//                     <pre className="text-red-400 font-mono text-sm whitespace-pre-wrap">
+//                       {runtimeError}
+//                     </pre>
+//                   </div>
+//                 </div>
+//               </div>
+//             )}
+//           </div>
 
-//       {/* ERROR TAB */}
-//       {activeTab === "errors" && (
-//         <pre className="text-red-400 text-sm whitespace-pre-wrap">
-//           {runtimeError || "No errors"}
-//         </pre>
-//       )}
-
-//       {/* INPUT TAB */}
-//       {activeTab === "input" && (
-//         <div className="flex flex-col gap-2">
-//           <textarea
-//             value={input}
-//             onChange={(e) => setInput(e.target.value)}
-//             className="w-full bg-[#111827] border border-white/10 p-2 text-white text-sm rounded"
-//             rows={4}
-//             placeholder="Enter stdin input..."
-//             onKeyDown={(e) => {
-//               if (e.ctrlKey && e.key === "Enter") {
-//                 runCode();
-//               }
-//             }}
-//           />
-
-//           <CustomButton onClick={runCode}>
-//             ▶ Run with Input
-//           </CustomButton>
+//           <div className="h-1 w-full bg-linear-to-r from-[#00ADB5] to-transparent"></div>
 //         </div>
 //       )}
-//     </div>
-
-//     {/* STATUS BAR */}
-//     <div className="h-1 bg-gradient-to-r from-[#00ADB5] to-transparent" />
-//   </div>
-// )}
 
 //       {loading && (
 //         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
@@ -1213,6 +1680,7 @@ export default CodingEditor;
 //           </div>
 //         </div>
 //       )}
+
 //     </div>
 //   );
 // };
