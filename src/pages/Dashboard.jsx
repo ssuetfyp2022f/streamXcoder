@@ -26,7 +26,7 @@ import {
   getCompletedCoursesCount,
   getTotalCodesCount,
   ALL_LANGUAGES
-} from '../firebase/userData.js';
+} from '../firebase/userdata.js';
 
 const Dashboard = () => {
   const { user } = useAuth();
