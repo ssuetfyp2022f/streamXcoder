@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { getVideos } from "../api/videos.api";
 import { getPlaylists } from "../api/playlists.api";
@@ -6,7 +6,7 @@ import { getUsers } from "../api/users.api";
 import { motion } from "framer-motion";
 import { useAuth } from '../context/AuthContext';
 import Sidebar from "../components/Sidebar";
-import { UsersIcon, Users, FolderOpen, VideoIcon, User, Video } from "lucide-react";
+import { UsersIcon, Users, FolderOpen, VideoIcon, User, Video, Loader2 } from "lucide-react";
 
 export default function Admin() {
   // =========================
@@ -16,8 +16,11 @@ export default function Admin() {
   const [videos, setVideos] = useState([]);
   const [playlists, setPlaylists] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isopenSidebar, setisopenSidebar] = useState(true); // Default to true (open)
+  const [isopenSidebar, setisopenSidebar] = useState(true);
   const [activeTab, setActiveTab] = useState("dashboard");
+  const usersRef = useRef(null);
+  const videosRef = useRef(null);
+  const playlistsRef = useRef(null);
   const { user } = useAuth();
 
   // =========================
@@ -67,16 +70,33 @@ export default function Admin() {
   // =========================
   // FILTERED DATA
   // =========================
-  const latestUsers = [...users].slice(0, 5);
+  const latestUsers = [...users]
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, 5);
 
   const latestVideos = [...videos]
     .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
     .slice(0, 5);
 
   const latestPlaylists = [...playlists]
-    .sort(
-      (a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     .slice(0, 5);
+
+  // =========================
+  // SECTIONS
+  // =========================
+  const scrollToSection = (section) => {
+    const refs = {
+      users: usersRef,
+      videos: videosRef,
+      playlists: playlistsRef,
+    };
+
+    refs[section]?.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
 
   // =========================
   // STATS
@@ -86,6 +106,7 @@ export default function Admin() {
       title: "Total Users",
       value: users.length,
       icon: Users,
+      section: "users",
       color: "from-cyan-500 to-blue-500",
       bgColor: "bg-gradient-to-br from-cyan-500/20 to-blue-500/20",
       borderColor: "border-cyan-500/30",
@@ -94,6 +115,7 @@ export default function Admin() {
       title: "Total Videos",
       value: videos.length,
       icon: VideoIcon,
+      section: "videos",
       color: "from-pink-500 to-rose-500",
       bgColor: "bg-gradient-to-br from-pink-500/20 to-rose-500/20",
       borderColor: "border-pink-500/30",
@@ -102,27 +124,12 @@ export default function Admin() {
       title: "Total Playlists",
       value: playlists.length,
       icon: FolderOpen,
+      section: "playlists",
       color: "from-purple-500 to-indigo-500",
       bgColor: "bg-gradient-to-br from-purple-500/20 to-indigo-500/20",
       borderColor: "border-purple-500/30",
     },
   ];
-
-  // =========================
-  // LOADING UI
-  // =========================
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-linear-to-br from-[#0f172a] to-[#1e293b] flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <h1 className="text-2xl font-bold text-white animate-pulse">
-            Loading Dashboard...
-          </h1>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div
@@ -179,6 +186,7 @@ export default function Admin() {
             {stats.map((item, index) => (
               <motion.div
                 key={item.title}
+                onClick={() => scrollToSection(item.section)}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
@@ -209,6 +217,7 @@ export default function Admin() {
 
           {/* Recent Users Section */}
           <motion.section
+            ref={usersRef}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 mb-10"
@@ -289,6 +298,7 @@ export default function Admin() {
           <div className="space-y-8">
             {/* Videos Section */}
             <motion.section
+              ref={videosRef}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.4 }}
@@ -333,7 +343,7 @@ export default function Admin() {
                       />
                       <div className="flex-1 mt-4">
                         <h3 className="font-semibold">{video.videoTitle}</h3>
-                        
+
                         <p className="text-cyan-400 text-xs mt-2">
                           Uploaded By: {video.uploadedBy}
                         </p>
@@ -350,6 +360,7 @@ export default function Admin() {
 
             {/* Playlists Section */}
             <motion.section
+              ref={playlistsRef}
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.5 }}
@@ -412,6 +423,15 @@ export default function Admin() {
           </div>
         </div>
       </main>
+
+      {loading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+          <div className="text-center">
+            <Loader2 className="w-12 h-12 text-[#00ADB5] animate-spin mx-auto mb-4" />
+            <p className="text-gray-200">Loading Dashboard...</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

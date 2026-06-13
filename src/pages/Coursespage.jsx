@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, X, Play, Clock, BookOpen, Code, Sparkles, Loader } from "lucide-react";
+import { Search, X, Play, Clock, BookOpen, Code, Sparkles, Loader, Loader2 } from "lucide-react";
 
 // for dynamic fetching form db
 import { getVideos } from "../api/videos.api";
@@ -23,6 +23,7 @@ const Coursespage = () => {
   // fetching video from db
   useEffect(() => {
     const fetchVideos = async () => {
+      setLoadingVideos(true);
       try {
         const data = await getVideos();
         setVideos(data);
@@ -39,11 +40,14 @@ const Coursespage = () => {
   // fetching playlists from db
   useEffect(() => {
     const fetchPlaylists = async () => {
+      setLoadingPlaylist(true);
       try {
         const data = await getPlaylists();
         setPlaylists(data);
       } catch (error) {
         console.error("Error fetching playlists:", error);
+      } finally {
+        setLoadingPlaylist(false);
       }
     };
 
@@ -225,19 +229,22 @@ const Coursespage = () => {
         </motion.div>
 
         {/* One Shot Videos */}
-        {loadingVideos ? (
-          <div className="col-span-full flex justify-center py-10">
-            <Loader className="animate-spin text-[#00ADB5]" size={40} />
-          </div>
-        ) : (
-          <div className="mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-center mb-10 flex items-center justify-center gap-2">
-              <Sparkles className="text-[#00ADB5]" size={28} />
-              <span className="bg-linear-to-r from-[#00ADB5] to-[#61DAFB] bg-clip-text text-transparent">
-                One Shot Videos
-              </span>
-            </h2>
 
+        <div className="mb-16">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-10 flex items-center justify-center gap-2">
+            <Sparkles className="text-[#00ADB5]" size={28} />
+            <span className="bg-linear-to-r from-[#00ADB5] to-[#61DAFB] bg-clip-text text-transparent">
+              One Shot Videos
+            </span>
+          </h2>
+          {loadingVideos ? (
+            <div className="col-span-full flex justify-center py-10">
+              <div className="text-center">
+                <Loader2 className="w-12 h-12 text-[#00ADB5] animate-spin mx-auto mb-4" />
+                <p className="text-gray-200">Loading videos...</p>
+              </div>
+            </div>
+          ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
 
               {filteredVideos.length > 0 ? (
@@ -305,73 +312,77 @@ const Coursespage = () => {
                 </div>
               )}
             </div>
-          </div>
-        )}
+          )}
+        </div>
+
 
         {/* Playlists */}
-        {loadingVideos ? (
-          <div className="col-span-full flex justify-center py-10">
-            <Loader className="animate-spin text-[#00ADB5]" size={40} />
-          </div>
-        ) : (<div className="mb-16">
+        <div className="mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-10 flex items-center justify-center gap-2">
             <BookOpen className="text-[#00ADB5]" size={28} />
             <span className="bg-linear-to-r from-[#00ADB5] to-[#61DAFB] bg-clip-text text-transparent">
               Learning Playlists
             </span>
           </h2>
+          {loadingPlaylist ? (
+            <div className="col-span-full flex justify-center py-10">
+              <div className="text-center">
+                <Loader2 className="w-12 h-12 text-[#00ADB5] animate-spin mx-auto mb-4" />
+                <p className="text-gray-200">Loading playlists...</p>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {filteredPlaylists.length > 0 ? (
+                filteredPlaylists.map((playlist) => (
+                  <div
+                    key={playlist.id}
+                    onClick={() => handlePlaylistClick(playlist)}
+                    className="group cursor-pointer rounded-xl overflow-hidden transition-all duration-300 hover:scale-105 hover:-translate-y-2"
+                    style={{
+                      backgroundColor: "#393E46",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
+                    }}
+                  >
+                    <div className="relative aspect-video overflow-hidden">
+                      <img
+                        src={playlist.thumbnail}
+                        alt={playlist.playlistTitle}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {filteredPlaylists.length > 0 ? (
-              filteredPlaylists.map((playlist) => (
-                <div
-                  key={playlist.id}
-                  onClick={() => handlePlaylistClick(playlist)}
-                  className="group cursor-pointer rounded-xl overflow-hidden transition-all duration-300 hover:scale-105 hover:-translate-y-2"
-                  style={{
-                    backgroundColor: "#393E46",
-                    border: "1px solid rgba(255,255,255,0.1)",
-                    boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
-                  }}
-                >
-                  <div className="relative aspect-video overflow-hidden">
-                    <img
-                      src={playlist.thumbnail}
-                      alt={playlist.playlistTitle}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
+                      <div className="absolute inset-0 bg-linear-to-t from-black to-transparent" />
 
-                    <div className="absolute inset-0 bg-linear-to-t from-black to-transparent" />
+                      <div className="absolute bottom-2 left-4 z-10">
+                        <span className="bg-cyan-500 text-white text-xs px-3 py-1  rounded-full font-semibold">
+                          {playlist.course}
+                        </span>
+                      </div>
 
-                    <div className="absolute bottom-2 left-4 z-10">
-                      <span className="bg-cyan-500 text-white text-xs px-3 py-1  rounded-full font-semibold">
-                        {playlist.course}
+                      <span
+                        className="absolute bottom-2 right-2 px-2 py-1 rounded text-xs font-medium flex items-center gap-1"
+                        style={{ backgroundColor: "#222831", color: "#EEEEEE" }}
+                      >
+                        <Clock size={12} />
+                        {playlist.duration}
                       </span>
                     </div>
-
-                    <span
-                      className="absolute bottom-2 right-2 px-2 py-1 rounded text-xs font-medium flex items-center gap-1"
-                      style={{ backgroundColor: "#222831", color: "#EEEEEE" }}
-                    >
-                      <Clock size={12} />
-                      {playlist.duration}
-                    </span>
+                    <div className="p-4">
+                      <h3 className="font-medium text-sm line-clamp-2" style={{ color: "#EEEEEE" }}>
+                        {playlist.playlistTitle}
+                      </h3>
+                    </div>
                   </div>
-                  <div className="p-4">
-                    <h3 className="font-medium text-sm line-clamp-2" style={{ color: "#EEEEEE" }}>
-                      {playlist.playlistTitle}
-                    </h3>
-                  </div>
+                ))
+              ) : (
+                <div className="col-span-full text-center py-12 text-gray-400">
+                  No playlists found for "{searchTerm}"
                 </div>
-              ))
-            ) : (
-              <div className="col-span-full text-center py-12 text-gray-400">
-                No playlists found for "{searchTerm}"
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
         </div>
-        )}
 
         {/* Playlist Modal with Loading State */}
         <AnimatePresence>
@@ -413,7 +424,7 @@ const Coursespage = () => {
                 <div className="overflow-y-auto p-6 max-h-[calc(90vh-80px)]">
                   {loadingPlaylist ? (
                     <div className="col-span-full flex justify-center py-10">
-                      <Loader className="animate-spin text-[#00ADB5]" size={40} />
+                      <Loader2 className="animate-spin text-[#00ADB5]" size={40} />
                     </div>
                   ) : (
                     <div className="space-y-3">
@@ -460,7 +471,7 @@ const Coursespage = () => {
           )}
         </AnimatePresence>
       </div>
-    </div>
+    </div >
   );
 };
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Search, Users as UsersIcon, Shield, Eye, Trash2, X, } from "lucide-react";
+import { Search, Users as UsersIcon, Shield, Eye, Trash2, X, Loader2, } from "lucide-react";
 import { motion } from "framer-motion";
 import { getUsers, updateUserRole, deleteUser } from "../api/users.api";
 import Sidebar from "../components/Sidebar";
@@ -11,13 +11,17 @@ const Users = () => {
   const [roleFilter, setRoleFilter] = useState("all");
   const [isopenSidebar, setisopenSidebar] = useState(true); // Default to true (open)
   const [activeTab, setActiveTab] = useState("users");
+  const [loading, setLoading] = useState("fasle");
 
   const fetchUsers = async () => {
     try {
+      setLoading(true);
       const data = await getUsers();
       setUsers(data || []);
     } catch (error) {
       console.log(error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -270,63 +274,65 @@ const Users = () => {
 
           {/* User List */}
           <div className="space-y-3">
-            {filteredUsers.map((user) => (
-              <motion.div
-                key={user.id}
-                whileHover={{ scale: 1.01 }}
-                className="flex items-center justify-between p-4 rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl"
-              >
-                {/* User Info */}
-                <div className="flex items-center gap-3">
-                  <div
-                    className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white"
-                    style={{
-                      background: "linear-gradient(135deg,#00ADB5,#61DAFB)",
-                    }}
-                  >
-                    {user.displayName?.charAt(0)?.toUpperCase()}
+            {[...filteredUsers]
+              .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+              .map((user) => (
+                <motion.div
+                  key={user.id}
+                  whileHover={{ scale: 1.01 }}
+                  className="flex items-center justify-between p-4 rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl"
+                >
+                  {/* User Info */}
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white"
+                      style={{
+                        background: "linear-gradient(135deg,#00ADB5,#61DAFB)",
+                      }}
+                    >
+                      {user.displayName?.charAt(0)?.toUpperCase()}
+                    </div>
+
+                    <div className="min-w-0">
+                      <h3 className="text-white font-semibold truncate">
+                        {user.displayName}
+                      </h3>
+                      <p className="text-gray-400 text-sm truncate">
+                        {user.email}
+                      </p>
+                    </div>
                   </div>
 
-                  <div className="min-w-0">
-                    <h3 className="text-white font-semibold truncate">
-                      {user.displayName}
-                    </h3>
-                    <p className="text-gray-400 text-sm truncate">
-                      {user.email}
-                    </p>
+                  {/* Actions */}
+                  <div className="flex items-center gap-3 ml-auto">
+                    <select
+                      value={user.role}
+                      onChange={(e) => handleRoleChange(user.id, e.target.value)}
+                      className="w-fit p-2 rounded-lg text-white"
+                      style={{ backgroundColor: "#222831" }}
+                    >
+                      <option value="user">User</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                    <button
+                      onClick={() => setSelectedUser(user)}
+                      className="px-4 py-2 rounded-lg text-white flex items-center gap-2"
+                      style={{ backgroundColor: "#00ADB5" }}
+                    >
+                      <Eye size={16} />
+                      View
+                    </button>
+
+                    <button
+                      onClick={() => handleDelete(user.id, user.displayName)}
+                      className="px-4 py-2 rounded-lg bg-red-500 text-white flex items-center gap-2"
+                    >
+                      <Trash2 size={16} />
+                      Delete
+                    </button>
                   </div>
-                </div>
-
-                {/* Actions */}
-                <div className="flex items-center gap-3 ml-auto">
-                  <select
-                    value={user.role}
-                    onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                    className="w-fit p-2 rounded-lg text-white"
-                    style={{ backgroundColor: "#222831" }}
-                  >
-                    <option value="user">User</option>
-                    <option value="admin">Admin</option>
-                  </select>
-                  <button
-                    onClick={() => setSelectedUser(user)}
-                    className="px-4 py-2 rounded-lg text-white flex items-center gap-2"
-                    style={{ backgroundColor: "#00ADB5" }}
-                  >
-                    <Eye size={16} />
-                    View
-                  </button>
-
-                  <button
-                    onClick={() => handleDelete(user.id, user.displayName)}
-                    className="px-4 py-2 rounded-lg bg-red-500 text-white flex items-center gap-2"
-                  >
-                    <Trash2 size={16} />
-                    Delete
-                  </button>
-                </div>
-              </motion.div>
-            ))}
+                </motion.div>
+              ))}
           </div>
         </div>
 
@@ -363,11 +369,21 @@ const Users = () => {
                 <p><strong>Last Login:</strong> {formatDate(selectedUser.lastLogin)}</p>
                 <p><strong>Subscription:</strong> {selectedUser.subscription}</p>
                 <p><strong>Enrolled Courses:</strong> {selectedUser.enrolledCourses}</p>
+                <p><strong>Languages:</strong> {selectedUser.languages}</p>
               </div>
             </div>
           </div>
         )}
       </div>
+
+      {loading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+          <div className="text-center">
+            <Loader2 className="w-12 h-12 text-[#00ADB5] animate-spin mx-auto mb-4" />
+            <p className="text-gray-200">Loading users...</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

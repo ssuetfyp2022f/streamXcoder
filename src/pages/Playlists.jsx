@@ -3,7 +3,7 @@ import { addPlaylist, getPlaylists, updatePlaylist, deletePlaylist } from "../ap
 import { getAuth } from "firebase/auth";
 import Sidebar from "../components/Sidebar";
 import { motion } from "framer-motion";
-import { Search, Play, BookOpen, Globe, Eye, Edit, Trash2, X, Plus, Clock, Video, FolderOpen } from "lucide-react";
+import { Search, Play, BookOpen, Globe, Eye, Edit, Trash2, X, Plus, Clock, Video, FolderOpen, Loader2 } from "lucide-react";
 
 export default function Playlists() {
     const [isOpen, setIsOpen] = useState(false);
@@ -11,6 +11,7 @@ export default function Playlists() {
     const [playlists, setPlaylists] = useState([]);
     const [editingId, setEditingId] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [pageLoading, setPageLoading] = useState(false);
     const [isopenSidebar, setisopenSidebar] = useState(true);
     const [activeTab, setActiveTab] = useState("playlists");
     const [searchTerm, setSearchTerm] = useState("");
@@ -63,10 +64,14 @@ export default function Playlists() {
     // ---------------- FETCH ----------------
     const fetchPlaylists = async () => {
         try {
+            setLoading(true);
+
             const data = await getPlaylists();
             setPlaylists(data || []);
         } catch (error) {
             console.error(error);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -876,6 +881,14 @@ export default function Playlists() {
                                 Close
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+            {loading && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+                    <div className="text-center">
+                        <Loader2 className="w-12 h-12 text-[#00ADB5] animate-spin mx-auto mb-4" />
+                        <p className="text-gray-200">Loading playlists...</p>
                     </div>
                 </div>
             )}

@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronsLeft, ChevronsRight, LayoutDashboard, Users, Video, FolderOpen, UserCircle, LogOut } from "lucide-react";
+import { ChevronsLeft, ChevronsRight, LayoutDashboard, Users, Video, FolderOpen, Home, UserCircle, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
@@ -24,6 +24,7 @@ const Sidebar = ({
         { id: "users", label: "Users", icon: Users, path: "/admin/users" },
         { id: "videos", label: "Videos", icon: Video, path: "/admin/videos" },
         { id: "playlists", label: "Playlists", icon: FolderOpen, path: "/admin/playlists" },
+        { id: "home", label: "Home", icon: Home, path: "/" },
     ];
 
     return (
@@ -31,9 +32,9 @@ const Sidebar = ({
             animate={{ width: isopenSidebar ? 288 : 80 }}
             transition={{ duration: 0.35, ease: "easeInOut" }}
             className="fixed top-0 left-0 h-screen 
-      bg-[#0B1220]/95 backdrop-blur-xl 
-      border-r border-white/5 
-      shadow-2xl flex flex-col z-50 overflow-hidden"
+            bg-[#0B1220]/95 backdrop-blur-xl 
+            border-r border-white/5 
+            shadow-2xl flex flex-col z-50 overflow-hidden"
         >
             {/* LOGO */}
             <div className="h-24 p-4 border-b border-white/5 flex items-center">
@@ -103,8 +104,8 @@ const Sidebar = ({
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => setActiveTab(item.id)}
                                 className={`relative flex items-center rounded-xl transition-all
-                ${isopenSidebar ? "w-full gap-3 px-4 py-3" : "w-12 h-12 justify-center mx-auto"}
-                ${activeTab === item.id
+                                ${isopenSidebar ? "w-full gap-3 px-4 py-3" : "w-12 h-12 justify-center mx-auto"}
+                                ${activeTab === item.id
                                         ? "bg-linear-to-r from-cyan-500/15 to-blue-500/15 text-cyan-300 border border-cyan-500/30"
                                         : "text-gray-400 hover:text-white hover:bg-white/5"
                                     }`}
@@ -129,10 +130,10 @@ const Sidebar = ({
                                 {!isopenSidebar && (
                                     <div
                                         className="absolute left-full ml-3 px-2 py-1 
-                    bg-[#0B1220] border border-white/10 
-                    text-white text-xs rounded-lg 
-                    opacity-0 group-hover:opacity-100 
-                    transition-all whitespace-nowrap z-50"
+                                        bg-[#0B1220] border border-white/10 
+                                        text-white text-xs rounded-lg 
+                                        opacity-0 group-hover:opacity-100 
+                                        transition-all whitespace-nowrap z-50"
                                     >
                                         {item.label}
                                     </div>

@@ -3,7 +3,7 @@ import { getVideos, addVideos, updateVideos, deleteVideos } from "../api/videos.
 import { getAuth } from "firebase/auth";
 import Sidebar from "../components/Sidebar";
 import { motion } from "framer-motion";
-import { Search, Video as VideoIcon, Users, BookOpen, Globe, Eye, Edit, Trash2, X, Plus } from "lucide-react";
+import { Search, Video as VideoIcon, Users, BookOpen, Globe, Eye, Edit, Trash2, X, Plus, Loader2 } from "lucide-react";
 
 export default function Videos() {
     const [isOpen, setIsOpen] = useState(false);
@@ -57,10 +57,14 @@ export default function Videos() {
     // ---------------- FETCH ----------------
     const fetchVideos = async () => {
         try {
+            setLoading(true);
             const data = await getVideos();
             setVideos(data || []);
         } catch (error) {
             console.error(error);
+        } finally {
+            setLoading(false)
+
         }
     };
 
@@ -783,6 +787,14 @@ export default function Videos() {
                                 Close
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+            {loading && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+                    <div className="text-center">
+                        <Loader2 className="w-12 h-12 text-[#00ADB5] animate-spin mx-auto mb-4" />
+                        <p className="text-gray-200">Loading videos...</p>
                     </div>
                 </div>
             )}

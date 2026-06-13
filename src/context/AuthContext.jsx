@@ -76,7 +76,7 @@ export const AuthProvider = ({ children }) => {
 
   const clearError = () => setError('');
 
-  const signup = async (email, password, displayName, technologies = []) => {
+  const signup = async (email, password, displayName, selectedLanguages = []) => {
     try {
       setActionLoading(true);
       setError('');
@@ -96,7 +96,7 @@ export const AuthProvider = ({ children }) => {
         displayName: displayName,
         createdAt: new Date().toISOString(),
         lastLogin: new Date().toISOString(),
-        technologies: technologies, // Save selected technologies
+        languages: selectedLanguages, // Save selected languages
         subscription: 'free',
         points: 0,
         completedCourses: [],
@@ -151,7 +151,7 @@ export const AuthProvider = ({ children }) => {
           photoURL: result.user.photoURL,
           createdAt: new Date().toISOString(),
           lastLogin: new Date().toISOString(),
-          technologies: [],
+          languages: [],
           subscription: 'free',
           points: 0,
           completedCourses: [],
@@ -196,7 +196,7 @@ export const AuthProvider = ({ children }) => {
         photoURL: user.photoURL,
         createdAt: new Date().toISOString(),
         lastLogin: new Date().toISOString(),
-        technologies: [],
+        languages: [],
         subscription: 'free',
         points: 0,
         role: 'user'
