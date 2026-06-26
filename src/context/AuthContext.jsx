@@ -1,16 +1,15 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signInWithPopup,
-  signOut,
+import { 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword, 
+  signInWithPopup, 
+  signOut, 
   onAuthStateChanged,
   updateProfile,
-  sendPasswordResetEmail,
-  GithubAuthProvider,
+  sendPasswordResetEmail
 } from 'firebase/auth';
 import { auth, googleProvider } from '../firebase/firebase';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, onSnapshot } from 'firebase/firestore'; // ← onSnapshot yahan add karo
 import { db } from '../firebase/firebase';
 
 // Create context
@@ -40,65 +39,65 @@ export const AuthProvider = ({ children }) => {
     }
   }, [error]);
 
-  // Listen for auth state changes
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        // Get additional user data from Firestore
-        try {
-          const userDoc = await getDoc(doc(db, 'users', user.uid));
-          const userData = userDoc.exists() ? userDoc.data() : {};
-
-          setUser({
-            uid: user.uid,
-            email: user.email,
-            displayName: user.displayName,
-            photoURL: user.photoURL,
-            ...userData
-          });
-        } catch (err) {
-          console.error('Error fetching user data:', err);
-          setUser({
-            uid: user.uid,
-            email: user.email,
-            displayName: user.displayName,
-            photoURL: user.photoURL
-          });
-        }
+  // ✅ FIXED: Listen for auth state changes with real-time Firestore listener
+ useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    if (firebaseUser) {
+      // Get user data from Firestore (ONE TIME, not real-time)
+      const userRef = doc(db, 'users', firebaseUser.uid);
+      const userDoc = await getDoc(userRef);
+      
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        setUser({
+          ...firebaseUser,
+          points: userData.points || 0,
+          streak: userData.streak || 0,
+          totalWatchTime: userData.totalWatchTime || 0,
+          totalCodes: userData.totalCodes || 0,
+          selectedLanguages: userData.selectedLanguages || [],
+          role: userData.role || 'user',
+          subscription: userData.subscription || 'free',
+          completedCourses: userData.completedCourses || [],
+          enrolledCourses: userData.enrolledCourses || []
+        });
       } else {
-        setUser(null);
+        setUser(firebaseUser);
       }
       setLoading(false);
-    });
+    } else {
+      setUser(null);
+      setLoading(false);
+    }
+  });
 
-    return unsubscribe;
-  }, []);
-
+  return unsubscribe;
+}, []);
   const clearError = () => setError('');
 
   const signup = async (email, password, displayName, selectedLanguages = []) => {
     try {
       setActionLoading(true);
       setError('');
-
-      // 1. Create user in Firebase Authentication
+      
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-
-      // 2. Update profile with display name
+      
       await updateProfile(userCredential.user, {
         displayName: displayName
       });
 
-      // 3. Create user document in Firestore
       await setDoc(doc(db, 'users', userCredential.user.uid), {
         uid: userCredential.user.uid,
         email: email,
         displayName: displayName,
         createdAt: new Date().toISOString(),
         lastLogin: new Date().toISOString(),
-        languages: selectedLanguages, // Save selected languages
+        selectedLanguages: selectedLanguages,
         subscription: 'free',
-        points: 0,
+        points: 50,
+        streak: 1,
+        totalWatchTime: 0,
+        totalCodes: 0,
         completedCourses: [],
         enrolledCourses: [],
         role: 'user'
@@ -118,8 +117,7 @@ export const AuthProvider = ({ children }) => {
       setActionLoading(true);
       setError('');
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-
-      // Update last login time
+      
       await setDoc(doc(db, 'users', userCredential.user.uid), {
         lastLogin: new Date().toISOString()
       }, { merge: true });
@@ -138,12 +136,10 @@ export const AuthProvider = ({ children }) => {
       setActionLoading(true);
       setError('');
       const result = await signInWithPopup(auth, googleProvider);
-
-      // Check if user exists in Firestore
+      
       const userDoc = await getDoc(doc(db, 'users', result.user.uid));
-
+      
       if (!userDoc.exists()) {
-        // Create new user document
         await setDoc(doc(db, 'users', result.user.uid), {
           uid: result.user.uid,
           email: result.user.email,
@@ -151,15 +147,17 @@ export const AuthProvider = ({ children }) => {
           photoURL: result.user.photoURL,
           createdAt: new Date().toISOString(),
           lastLogin: new Date().toISOString(),
-          languages: [],
+          selectedLanguages: [],
           subscription: 'free',
-          points: 0,
+          points: 50,
+          streak: 1,
+          totalWatchTime: 0,
+          totalCodes: 0,
           completedCourses: [],
           enrolledCourses: [],
           role: 'user'
         });
       } else {
-        // Update last login time
         await setDoc(doc(db, 'users', result.user.uid), {
           lastLogin: new Date().toISOString()
         }, { merge: true });
@@ -173,48 +171,6 @@ export const AuthProvider = ({ children }) => {
       throw error;
     }
   };
-
-  const githubProvider = new GithubAuthProvider();
-
-  const githubLogin = async () => {
-  try {
-    setActionLoading(true);
-    setError('');
-
-    const result = await signInWithPopup(auth, githubProvider);
-
-    const user = result.user;
-
-    // check Firestore user exists
-    const userDoc = await getDoc(doc(db, 'users', user.uid));
-
-    if (!userDoc.exists()) {
-      await setDoc(doc(db, 'users', user.uid), {
-        uid: user.uid,
-        email: user.email,
-        displayName: user.displayName,
-        photoURL: user.photoURL,
-        createdAt: new Date().toISOString(),
-        lastLogin: new Date().toISOString(),
-        languages: [],
-        subscription: 'free',
-        points: 0,
-        role: 'user'
-      });
-    } else {
-      await setDoc(doc(db, 'users', user.uid), {
-        lastLogin: new Date().toISOString()
-      }, { merge: true });
-    }
-
-    setActionLoading(false);
-    return user;
-  } catch (error) {
-    setActionLoading(false);
-    setError(getErrorMessage(error.code));
-    throw error;
-  }
-};
 
   const logout = async () => {
     try {
@@ -236,29 +192,20 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Helper function to convert Firebase error codes to user-friendly messages
   const getErrorMessage = (code) => {
     switch (code) {
       case 'auth/email-already-in-use':
-        return 'This email is already registered. Please use a different email or login.';
+        return 'This email is already registered.';
       case 'auth/invalid-email':
         return 'Please enter a valid email address.';
-      case 'auth/operation-not-allowed':
-        return 'Email/password accounts are not enabled. Please contact support.';
       case 'auth/weak-password':
-        return 'Password is too weak. Please use at least 6 characters.';
-      case 'auth/user-disabled':
-        return 'This account has been disabled. Please contact support.';
+        return 'Password is too weak. Use at least 6 characters.';
       case 'auth/user-not-found':
-        return 'No account found with this email. Please sign up.';
+        return 'No account found with this email.';
       case 'auth/wrong-password':
         return 'Incorrect password. Please try again.';
       case 'auth/too-many-requests':
-        return 'Too many failed attempts. Please try again later.';
-      case 'auth/network-request-failed':
-        return 'Network error. Please check your internet connection.';
-      case 'auth/popup-closed-by-user':
-        return 'Google sign-in was cancelled.';
+        return 'Too many failed attempts. Try again later.';
       default:
         return 'An error occurred. Please try again.';
     }
@@ -266,12 +213,11 @@ export const AuthProvider = ({ children }) => {
 
   const value = {
     user,
-    loading: actionLoading, // Use actionLoading for form submissions
+    loading: actionLoading,
     error,
     signup,
     login,
     loginWithGoogle,
-    githubLogin,
     logout,
     resetPassword,
     clearError
@@ -279,7 +225,7 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children} {/* Show children only after initial auth check */}
+      {!loading && children}
     </AuthContext.Provider>
   );
 };

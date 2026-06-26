@@ -1,4 +1,3 @@
-// src/firebase/userData.js
 import { db, auth } from './firebase';
 import { 
   collection, doc, setDoc, getDoc, getDocs, updateDoc, 
@@ -63,60 +62,77 @@ export const updateUserLanguages = async (userId, selectedLanguages) => {
   }
 };
 
-// Update language progress based on course completion
+
+// userData.js - Replace updateLanguageProgress with this
+
+// userData.js - Replace updateLanguageProgress with this
+
 export const updateLanguageProgress = async (userId, languageId) => {
   try {
-    // Get all courses for this language
+    console.log(`📊 Updating language progress for: ${languageId}`);
+    
+    // ✅ FIX: Map language to standard ID
+    const languageMap = {
+      'pyton': 'py',
+      'python': 'py',
+      'javascript': 'js',
+      'c#': 'csharp',
+      'c++': 'cpp'
+    };
+    const standardLangId = languageMap[languageId] || languageId;
+    
     const q = query(
       collection(db, "userCourses"), 
-      where("userId", "==", userId),
-      where("language", "==", languageId)
+      where("userId", "==", userId)
     );
     const querySnapshot = await getDocs(q);
     const courses = [];
     querySnapshot.forEach((doc) => {
-      courses.push(doc.data());
+      const data = doc.data();
+      // ✅ Check both original and mapped language
+      if (data.language === languageId || data.language === standardLangId) {
+        courses.push(data);
+      }
     });
     
-    if (courses.length === 0) return { success: true };
+    console.log(`📊 Found ${courses.length} courses for language ${standardLangId}`);
     
-    // Calculate overall progress for this language
+    if (courses.length === 0) {
+      return { success: true, progress: 0, level: "Beginner" };
+    }
+    
     let totalPercentage = 0;
     let completedCourses = 0;
-    const totalCourses = ALL_LANGUAGES.find(l => l.id === languageId)?.courses || 4;
     
     courses.forEach(course => {
-      totalPercentage += course.percentage || 0;
+      const validPercentage = Math.min(course.percentage || 0, 100);
+      totalPercentage += validPercentage;
       if (course.status === 'completed') completedCourses++;
     });
     
     const averageProgress = Math.round(totalPercentage / courses.length);
+    console.log(`📊 Average progress: ${averageProgress}%`);
     
-    // Determine level based on progress
     let level = "Beginner";
     if (averageProgress >= 80) level = "Expert";
     else if (averageProgress >= 50) level = "Intermediate";
     else if (averageProgress >= 25) level = "Advanced Beginner";
     
-    // Update user's language progress
     const userRef = doc(db, "users", userId);
     await updateDoc(userRef, {
-      [`languageProgress.${languageId}`]: {
+      [`languageProgress.${standardLangId}`]: {
         progress: averageProgress,
         coursesCompleted: completedCourses,
-        totalCourses: totalCourses,
+        totalCourses: ALL_LANGUAGES.find(l => l.id === standardLangId)?.courses || 4,
         level: level,
         updatedAt: new Date().toISOString()
       }
     });
     
-    // Award language mastery achievement
-    if (averageProgress === 100) {
-      await awardAchievement(userId, `${languageId}_master`);
-    }
-    
+    console.log(`✅ Language progress updated: ${averageProgress}%`);
     return { success: true, progress: averageProgress, level };
   } catch (error) {
+    console.error("❌ Error:", error);
     return { success: false, error: error.message };
   }
 };
@@ -127,7 +143,7 @@ export const getUserLanguagesWithProgress = async (userId) => {
     const userSnap = await getUserProfile(userId);
     if (!userSnap.success) return { success: false, data: [] };
     
-    const selectedLanguages = userSnap.data.selectedLanguages || [];
+    const selectedLanguages = userSnap.data.selectedLanguages || userSnap.data.technologies || [];
     const languageProgress = userSnap.data.languageProgress || {};
     
     const languagesWithProgress = selectedLanguages.map(langId => {
@@ -167,41 +183,119 @@ export const updateUserPoints = async (userId, pointsToAdd) => {
 };
 
 // Update streak on daily login
+// export const updateUserStreak = async (userId) => {
+//   try {
+//     const userRef = doc(db, "users", userId);
+//     const userSnap = await getDoc(userRef);
+    
+//     if (userSnap.exists()) {
+//       const userData = userSnap.data();
+//       const lastLogin = userData.lastLogin ? new Date(userData.lastLogin) : null;
+//       const today = new Date();
+//       const yesterday = new Date(today);
+//       yesterday.setDate(yesterday.getDate() - 1);
+      
+//       let newStreak = userData.streak || 0;
+      
+//       if (!lastLogin) {
+//         newStreak = 1;
+//       } else if (lastLogin.toDateString() === yesterday.toDateString()) {
+//         newStreak++;
+//       } else if (lastLogin.toDateString() !== today.toDateString()) {
+//         newStreak = 1;
+//       }
+      
+//       await updateDoc(userRef, {
+//         streak: newStreak,
+//         lastLogin: today.toISOString()
+//       });
+      
+//       // Check streak achievements
+//       if (newStreak === 7) await awardAchievement(userId, "streak_7");
+//       if (newStreak === 30) await awardAchievement(userId, "streak_30");
+      
+//       return { success: true, streak: newStreak };
+//     }
+//     return { success: false };
+//   } catch (error) {
+//     return { success: false, error: error.message };
+//   }
+// };
+
 export const updateUserStreak = async (userId) => {
   try {
     const userRef = doc(db, "users", userId);
     const userSnap = await getDoc(userRef);
     
-    if (userSnap.exists()) {
-      const userData = userSnap.data();
-      const lastLogin = userData.lastLogin ? new Date(userData.lastLogin) : null;
-      const today = new Date();
-      const yesterday = new Date(today);
-      yesterday.setDate(yesterday.getDate() - 1);
-      
-      let newStreak = userData.streak || 0;
-      
-      if (!lastLogin) {
-        newStreak = 1;
-      } else if (lastLogin.toDateString() === yesterday.toDateString()) {
-        newStreak++;
-      } else if (lastLogin.toDateString() !== today.toDateString()) {
-        newStreak = 1;
-      }
-      
+    if (!userSnap.exists()) {
+      console.log("User not found");
+      return { success: false };
+    }
+    
+    const userData = userSnap.data();
+    const today = new Date();
+    const todayDate = today.toDateString();
+    
+    // Get last login date
+    const lastLogin = userData.lastLogin ? new Date(userData.lastLogin) : null;
+    const lastLoginDate = lastLogin ? lastLogin.toDateString() : null;
+    
+    // Calculate yesterday
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayDate = yesterday.toDateString();
+    
+    let newStreak = userData.streak || 0;
+    
+    console.log("Streak Debug:", { 
+      lastLoginDate, 
+      todayDate, 
+      yesterdayDate,
+      currentStreak: newStreak 
+    });
+    
+    // If no last login, start streak at 1
+    if (!lastLoginDate) {
+      newStreak = 1;
+      console.log("First login - streak: 1");
+    }
+    // If already logged in today, keep streak same
+    else if (lastLoginDate === todayDate) {
+      console.log("Already logged in today - streak unchanged:", newStreak);
       await updateDoc(userRef, {
-        streak: newStreak,
         lastLogin: today.toISOString()
       });
-      
-      // Check streak achievements
-      if (newStreak === 7) await awardAchievement(userId, "streak_7");
-      if (newStreak === 30) await awardAchievement(userId, "streak_30");
-      
       return { success: true, streak: newStreak };
     }
-    return { success: false };
+    // If logged in yesterday, increase streak
+    else if (lastLoginDate === yesterdayDate) {
+      newStreak += 1;
+      console.log("Consecutive day - new streak:", newStreak);
+    }
+    // If last login is older, reset streak
+    else {
+      newStreak = 1;
+      console.log("Streak broken - reset to 1");
+    }
+    
+    // Update user document
+    await updateDoc(userRef, {
+      streak: newStreak,
+      lastLogin: today.toISOString()
+    });
+    
+    // Check streak achievements
+    if (newStreak === 7) {
+      await awardAchievement(userId, "streak_7");
+    } else if (newStreak === 30) {
+      await awardAchievement(userId, "streak_30");
+    }
+    
+    console.log("Streak updated to:", newStreak);
+    return { success: true, streak: newStreak };
+    
   } catch (error) {
+    console.error("Error updating streak:", error);
     return { success: false, error: error.message };
   }
 };
@@ -228,36 +322,49 @@ export const getUserCourses = async (userId) => {
 // Update course progress (when user watches a video)
 export const updateCourseProgress = async (userId, courseId, courseTitle, language, completedVideos, totalVideos) => {
   try {
+    // ✅ FIX: Validate values
+    const validTotal = Math.max(totalVideos, 1);
+    const validCompleted = Math.min(completedVideos, validTotal);
+    const percentage = Math.round((validCompleted / validTotal) * 100);
+    
+    console.log(`📊 Validated: ${validCompleted}/${validTotal} = ${percentage}%`);
+    
     const progressId = `${userId}_${courseId}`;
-    const percentage = Math.round((completedVideos / totalVideos) * 100);
-    const status = completedVideos === totalVideos ? "completed" : "in_progress";
+    const status = validCompleted === validTotal ? "completed" : "in_progress";
     
     await setDoc(doc(db, "userCourses", progressId), {
       userId,
       courseId,
       courseTitle,
       language,
-      completedVideos,
-      totalVideos,
+      completedVideos: validCompleted,
+      totalVideos: validTotal,
       percentage,
       status,
       lastWatched: new Date().toISOString()
     });
     
-    // Add points for watching a video (5 points per video)
-    await updateUserPoints(userId, 5);
+    console.log("✅ Course progress saved!");
     
-    // Update language progress
-    await updateLanguageProgress(userId, language);
+    // ✅ Add points for watching a video (5 points per video)
+    await updateUserPoints(userId, 5);
+    console.log("✅ +5 points added!");
+    
+    // ✅ UPDATE LANGUAGE PROGRESS - FIXED
+    console.log("🔄 Updating language progress for:", language);
+    const langResult = await updateLanguageProgress(userId, language);
+    console.log("✅ Language progress result:", langResult);
     
     // If course completed, add bonus points
     if (status === "completed") {
       await updateUserPoints(userId, 100);
       await awardAchievement(userId, "course_complete");
+      console.log("✅ Course completed! +100 bonus points!");
     }
     
     return { success: true, percentage };
   } catch (error) {
+    console.error("❌ Error updating course progress:", error);
     return { success: false, error: error.message };
   }
 };
@@ -432,13 +539,14 @@ export const subscribeToUserCodes = (userId, callback) => {
   const q = query(
     collection(db, "userCodes"), 
     where("userId", "==", userId),
-    orderBy("createdAt", "desc")
+    // orderBy("createdAt", "desc")
   );
   return onSnapshot(q, (snapshot) => {
     const codes = [];
     snapshot.forEach((doc) => {
       codes.push({ id: doc.id, ...doc.data() });
     });
+     codes.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); 
     callback(codes);
   });
 };
