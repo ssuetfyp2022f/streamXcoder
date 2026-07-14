@@ -414,9 +414,7 @@ const Footer = () => {
     { label: 'Home', path: '/' },
     { label: 'Browse Videos', path: '/videos' },
     { label: 'Code Editor', path: '/editor' },
-    { label: 'Upload Video', path: '/upload' },
     { label: 'Courses', path: '/courses' },
-    { label: 'Community', path: '/community' },
   ];
 
   const features = [
