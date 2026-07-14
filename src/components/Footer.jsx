@@ -610,7 +610,7 @@ const Footer = () => {
               </div>
 
               {/* Features Grid - Added from second file */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-8 border-t border-white/10">
+              {/* <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-8 border-t border-white/10">
                 {features.map((feature, index) => (
                   <motion.div
                     key={feature.label}
@@ -624,7 +624,7 @@ const Footer = () => {
                     <div className="text-sm text-gray-400">{feature.label}</div>
                   </motion.div>
                 ))}
-              </div>
+              </div> */}
             </div>
           </div>
         )}
