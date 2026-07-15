@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, X, Play, Clock, BookOpen, Code, Sparkles, Loader } from "lucide-react";
 import { useAuth } from "../context/AuthContext"; 
-import { updateCourseProgress, getUserCourses } from "../firebase/userData"; 
+import { updateCourseProgress, getUserCourses } from "../firebase/userdata"; 
 
 // for dynamic fetching form db
 import { getVideos } from "../api/videos.api";
