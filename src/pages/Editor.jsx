@@ -22,7 +22,7 @@ import {
 import CustomButton from "../components/EditorPageButton";
 import CustomSelect from "../components/EditorPageSelect";
 import { useAuth } from "../context/AuthContext";
-import { saveCodeSnippet, getUserCodes } from "../firebase/userData";
+import { saveCodeSnippet, getUserCodes } from "../firebase/userdata";
 import { motion, AnimatePresence } from "framer-motion";
 
 const CodingEditor = () => {
