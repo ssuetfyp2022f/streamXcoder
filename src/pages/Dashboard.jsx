@@ -394,7 +394,7 @@ const Dashboard = () => {
                       <div className="w-full bg-gray-700 rounded-full h-3">
                         <motion.div 
                           initial={{ width: 0 }}
-                          animate={{ width: `${overallProgress}%` }}
+                          // animate={{ width: `${overallProgress}%` }}
                           transition={{ duration: 1 }}
                           className="h-full rounded-full bg-gradient-to-r from-[#00ADB5] to-[#61DAFB]"
                         />
